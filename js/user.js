@@ -2,8 +2,6 @@
 var midScreen = 2;
 
 function setup() {
-
-    loadTable(true);
     document.addEventListener('scroll', handleScroll);
     var header = document.querySelector('#header');
     header.querySelector('#up').addEventListener('click', function() {
@@ -24,6 +22,7 @@ function setup() {
     document.querySelector('#leyenda button:last-of-type').addEventListener('click', function() {
         dismissFilter();
     });
+    dismissFilter();
 }
 
 function hideFilter() {
