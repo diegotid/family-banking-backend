@@ -1,0 +1,396 @@
+
+$mobile: 1081px;
+$indigo: rgb(14, 27, 48);
+$mgreen: rgb(80, 140, 180);
+$indigolight: rgba(14, 27, 48, 0.6);
+$mgreenlight: rgba(80, 140, 180, 0.6);
+$indigosemilight: rgba(24, 47, 83, 0.9);
+
+@mixin shadow {
+    -webkit-box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);
+    box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);   
+}
+
+body {
+    margin: 0%;
+    padding: 0%;
+    color: $indigo;
+    font-family: 'Roboto', sans-serif;
+    font-size: 3vh;
+
+    &.freeze {
+        overflow: hidden;
+    }
+}
+
+#header {
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: 2vh;
+    z-index: 20;
+    font-size: 2.5vh;
+    border-radius: 2vh;
+    position: fixed;
+    width: calc(100vw - 7vh);
+    text-align: center;
+    white-space: nowrap;
+    background-color: $mgreen;
+    color: white;
+    @include shadow;
+
+    top: -8vh;
+    opacity: 0;
+    &.active {
+        top: 2vh;
+        opacity: 1;
+        transition: 0.5s;
+    }
+
+    #fecha {
+        left: 0;
+        right: 0;
+        margin: auto;
+        width: 50%;
+    }
+    
+    #up {
+        top: 2vh;
+        right: 2.5vh;
+        z-index: 100;
+        cursor: pointer;
+        position: absolute;
+        img { width: 3vh; }
+    }
+    
+    #loading {
+        top: 1vh;
+        left: 1.5vh;
+        z-index: -1;
+        opacity: 0.6;
+        position: absolute;
+        img { width: 5vh; }
+        display: none;
+        &.active { display: inline; }
+    }
+    
+    @media screen and (min-width: $mobile) {
+        top: 5vh;
+        font-size: 3.5vh;
+        padding: 2vh 4vh;
+        border-radius: 4.5vh;
+
+        &#up,
+        &#loading {
+            padding: 2vh 3vh;
+        }
+    }
+}
+
+#oscuro {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+
+    display: none;
+    &.showing {
+        display: inline;
+    }
+}
+
+#filtros,
+#leyenda {
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: 2vh;
+    z-index: 100;
+    position: fixed;
+    border-radius: 2vh;
+    width: calc(100vw - 7vh);
+    @include shadow();
+
+    opacity: 0;
+    bottom: -30vh;
+    &.showing {
+        opacity: 1;
+        bottom: 2vh;
+        transition: 0.5s;
+    }
+    
+    @media screen and (min-width: $mobile) {
+        max-width: 440px;
+    }
+
+    span {
+        left: 0;
+        right: 0;
+        color: grey;
+        text-align: center;
+        font-size: 2vh;
+    }
+
+    button {
+        font-size: 2.5vh;
+        padding: 2vh 3vh;
+        border-radius: 1.2vh;
+        margin-top: 1.5vh;
+        border: none;
+    }
+}
+
+#filtros {
+
+    background-color: rgba(255, 255, 255, 0.95);
+
+    button {
+        width: 100%;
+        background-color: lightgrey;
+        
+        &:first-of-type {
+            color: white;
+            background-color: $mgreen;
+        }
+    }
+
+    #criterios div {
+        overflow: hidden;
+        box-sizing: border-box;
+        text-align: center;
+        margin: 2vh;
+
+        img {
+            width: 6vh;
+            margin-bottom: 1vh;
+        }
+
+        div, p {
+            width: auto;
+            margin: auto;
+            &:nth-child(2) { font-weight: 300; }
+            &:nth-child(3) { font-size: 3vh; }
+        }
+    }
+}
+
+#leyenda {
+
+    background-color: $mgreen;
+
+    span {
+        color: white;
+    }
+
+    #criterios {
+        margin-top: 2vh;
+
+        div {
+            display: flex;
+            flex-wrap: wrap;
+        
+            img {
+                max-width: 5vh;
+                max-height: 5vh;
+                float: left;
+                flex-grow: 1;
+            }
+
+            div, p {
+                flex-grow: 1;
+                float: left;
+                color: white;
+                margin: 1vh;
+                font-size: 2.5vh;
+                font-weight: 300;
+                display: inline-block;
+                
+                &:nth-of-type(2n+1) {
+                    max-width: 50vw;
+                }
+                &:nth-of-type(2n+2) {
+                    text-align: right;
+                }
+            }
+        }
+    }
+
+    button {
+        margin: auto;
+        float: right;
+        color: white;
+        background: none;
+        padding: 2vh 1.5vh;
+        vertical-align: middle;
+    }
+}
+
+#cabecera, #pie {
+    height: 53.5vh;
+    position: relative;
+
+    #balance {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+        padding: 2vh;
+        margin: 3vh auto 0 auto;
+        background-image: linear-gradient(to bottom right, $mgreenlight, $mgreen);
+        border-radius: 3vh;
+        flex-wrap: wrap;
+        display: flex;
+
+        &.oculto {
+            display: none;
+        }
+
+        @media screen and (min-width: $mobile) {
+            max-width: 440px;
+        }
+
+        @media screen and (max-width: $mobile) {
+            border-radius: 2vh;
+            margin: 1vh;
+        }
+
+        div {
+            flex-grow: 1;
+            color: white;
+            overflow: hidden;
+            box-sizing: border-box;
+            width: calc(50% - 4vh);
+            text-align: center;
+            margin: 1vh;
+            cursor: pointer;
+
+            img {
+                width: 10vh;
+                margin-bottom: 1vh;
+            }
+
+            div {
+                width: auto;
+                margin: auto;
+                &:nth-child(2) { font-weight: 300; }
+                &:nth-child(3) { font-size: 4.5vh; }
+            }
+        }
+    }
+
+    .posicion div.cuenta {
+        left: 0;
+        right: 0;
+        margin: 20vh auto;
+        text-align: center;
+        position: absolute;
+
+        img {
+            width: 40vw;
+        }
+
+        div, p {
+            width: auto;
+            margin: auto;
+            &:nth-child(2) { font-weight: 300; }
+            &:nth-child(3) { font-size: 6vh; }
+        }
+    }
+
+    &#cabecera .posicion div.cuenta { margin: 15vh auto 0 auto; }
+    &#pie .posicion div.cuenta { margin: 0 auto 15vh auto; }
+}
+
+#movimientos {
+    left: 0;
+    right: 0;
+    width: 90vw;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto 30px auto;
+
+    @media screen and (min-width: $mobile) {
+        max-width: 440px;
+    }
+
+    div {
+        flex-grow: 1;
+        overflow: hidden;
+        box-sizing: border-box;
+        text-align: center;
+        font-weight: 300;
+        margin: 5px;
+        padding: 0;
+
+        &:nth-child(5n+1),
+        &:nth-child(5n+2) {
+            display: none;
+        }
+
+        &:nth-child(5n+3) {
+            width: 45%;
+            font-size: 2.5vh;
+            text-align: left;
+            white-space: nowrap;
+            padding-top: 2.8vh;
+            padding-bottom: 8px;
+            margin-bottom: 0;
+            vertical-align: middle;
+            
+            img {
+                float: left;
+                max-width: 4vh;
+                margin: 0 2vh 0.5vh 0;
+            }
+
+            p {
+                margin: 1vh 0 0 0;
+
+                &:nth-of-type(2) {
+                    display: none;
+                }
+            }
+        }
+
+        &:nth-child(5n+4) {
+            width: 45%;
+            font-size: 4.5vh;
+            text-align: right;
+            padding-top: 2vh;
+            margin-bottom: 0;
+            font-weight: 400;
+
+            &.positive {
+                color: green;
+            }
+        }
+        
+        &:nth-child(5n+5) {
+            height: 0;
+            width: 100%;
+            margin-top: 0;
+            margin-bottom: 1vh;
+            padding-bottom: 0.5vh;
+            text-align: left;
+            font-weight: 300;
+            font-size: 2.7vh;
+            border-bottom: 1px solid $indigolight;
+            
+            &.focused {
+                height: auto;
+                opacity: 1;
+            }
+
+            &.positive {
+                color: $mgreen;
+            }
+        }
+    }
+
+    .cuenta {
+        cursor: pointer;
+    }
+}
