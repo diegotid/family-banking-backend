@@ -25,6 +25,18 @@ class bancaAPI extends API {
       }
       
       return array('status' => 200, 'cuentas' => $cuentas);
+
+    } else if ($this->method == 'PUT') {
+
+      $id = $this->args[0];
+      $nombre = $this->request['nombre'];
+
+      $con->query("UPDATE CUENTA SET nombre = '{$nombre}' WHERE id = {$id}");
+      if ($con->affected_rows > 0) {
+        return array('status' => 200, 'message' => 'Success');
+      } else {
+        return array('status' => 204, 'message' => 'No changes');
+      }
     }
   }
   

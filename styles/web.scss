@@ -103,6 +103,7 @@ body {
 }
 
 #filtros,
+#edit,
 #leyenda {
     left: 0;
     right: 0;
@@ -143,7 +144,8 @@ body {
     }
 }
 
-#filtros {
+#filtros,
+#edit {
 
     background-color: rgba(255, 255, 255, 0.95);
 
@@ -156,24 +158,62 @@ body {
             background-color: $mgreen;
         }
     }
-
+        
     #criterios div {
         overflow: hidden;
         box-sizing: border-box;
         text-align: center;
         margin: 2vh;
-
+        
         img {
             width: 6vh;
             margin-bottom: 1vh;
         }
-
+        
         div, p {
             width: auto;
             margin: auto;
             &:nth-child(2) { font-weight: 300; }
             &:nth-child(3) { font-size: 3vh; }
         }
+    }
+}
+
+#filtros {
+    transition: 1s;
+
+    &.hidden {
+        left: -100vw;
+        right: 100vw;
+        transition: 1s;
+    }
+}
+
+#edit {
+    left: 100vw;
+    right: 200vw;
+    bottom: 2vh;
+    transition: 0.6s;
+
+    span {
+        float: left;
+    }
+
+    &.showing {
+        left: 0;
+        right: 0;
+        transition: 1s;
+    }
+
+    input {
+        float: left;
+        clear: both;
+        font-size: 2.5vh;
+        margin-top: 2vh;
+        padding: 1.8vh 2vh;
+        border: 1px solid lightgrey;
+        border-radius: 1.2vh;
+        width: 100%;
     }
 }
 
@@ -236,16 +276,18 @@ body {
         left: 0;
         right: 0;
         bottom: 0;
-        position: absolute;
         padding: 2vh;
+        position: absolute;
         margin: 3vh auto 0 auto;
         background-image: linear-gradient(to bottom right, $mgreenlight, $mgreen);
         border-radius: 3vh;
         flex-wrap: wrap;
         display: flex;
+        transition: 1s;
 
         &.oculto {
             display: none;
+            transition: 1s;
         }
 
         @media screen and (min-width: $mobile) {

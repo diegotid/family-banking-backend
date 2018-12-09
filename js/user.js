@@ -77,7 +77,7 @@ function loadTable(init) {
                     if (item.balance) {
                         var celda = document.createElement('div');
                         celda.classList.add('cuenta');
-                        celda.id = item.cuenta;
+                        celda.id = 'c' + item.cuenta;
                         var img = document.createElement('img');
                         img.src = 'https://www.afterbanks.com/api/icons/' + item.logo + '.min.png';
                         celda.appendChild(img);
@@ -129,7 +129,7 @@ function loadTable(init) {
                         if (celda.innerText.indexOf('-') == 0) celda.innerText = celda.innerText.substring(1);
                     }
                     if (campo == 'cuenta') {
-                        celda.id = item.cuenta.id;
+                        celda.id = 'c' + item.cuenta.id;
                         celda.innerHTML = '<p>' + item.cuenta.nombre + '</p>';
                         if (item.cuenta.balance) {
                             celda.innerHTML += '<p>' + parseFloat(item.cuenta.balance).toLocaleString('es-ES', { minimumFractionDigits: 2 }) + '</p>';
@@ -168,19 +168,18 @@ function loadTable(init) {
             }
         }
     }
-    
-	requestm.open('GET', 'api/movimientos/' + (init ? '' : tabla.childNodes.length / 5) + '?q=' + encodeURIComponent(JSON.stringify(criterios)));
+    requestm.open('GET', 'api/movimientos/' + (init ? '' : tabla.childNodes.length / 5) + '?q=' + encodeURIComponent(JSON.stringify(criterios)));
     requestm.send();
 }
 
 function filtrarPorCuenta(e) {
     var cuenta = e.target;
     while (!cuenta.classList.contains('cuenta')) cuenta = cuenta.parentNode;
-    var filtros = {'cuentas': cuenta.id};
+    var filtros = {'cuentas': cuenta.id.substring(1)};
     var sesion = sessionStorage.getItem('filtros');
     if (sesion) {
         filtros = JSON.parse(sesion);
-        if (filtros.cuentas == cuenta.id) {
+        if (filtros.cuentas == cuenta.id.substring(1)) {
             return;
         }
     }
@@ -191,11 +190,17 @@ function filtrarPorCuenta(e) {
     filtros.querySelector('#criterios').appendChild(seleccion);
     var button = document.createElement('button');
     button.innerText = 'Aplicar a la lista';
-    filtros.insertBefore(button, filtros.querySelector('button:last-of-type'));
-    filtros.querySelector('button:nth-of-type(1)').addEventListener('click', function() {
+    button.addEventListener('click', function() {
         loadTable(true);
         hideFilter();
     });
+    filtros.insertBefore(button, filtros.querySelector('button:last-of-type'));
+    var buttonEdit = document.createElement('button');
+    buttonEdit.innerText = 'Cambiar nombre de la cuenta';
+    buttonEdit.addEventListener('click', function(e) {
+        showEdit(true);
+    });
+    filtros.insertBefore(buttonEdit, filtros.querySelector('button:last-of-type'));
     filtros.classList.add('showing');
     leyenda.classList.remove('showing');
     var criterio = cuenta.cloneNode(true);
@@ -208,8 +213,35 @@ function filtrarPorCuenta(e) {
 }
 
 var freeze = function(e) {
-    console.log('Freeze....');
     e.preventDefault();
+}
+
+function showEdit(show) {
+    var filtros = document.querySelector('#filtros');
+    var edicion = document.querySelector('#edit');
+    if (show) {
+        filtros.classList.add('hidden');
+        edicion.classList.add('showing');
+        edicion.querySelector('button:last-of-type').addEventListener('click', function(e) {
+            showEdit(false);
+        });
+        var entrada = edicion.querySelector('input');
+        entrada.placeholder = filtros.querySelector('.cuenta *:nth-child(2)').innerText;
+        edicion.querySelector('#save').addEventListener('click', function(e) {
+            var request = new XMLHttpRequest();
+            var idCuenta = filtros.querySelector('.cuenta').id.substring(1);
+            request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value));
+            request.send();
+            var nombres = document.querySelectorAll('.cuenta#c' + idCuenta + ' *:nth-child(2)');
+            nombres.forEach(function(nombre) {
+                nombre.innerText = entrada.value;
+            });
+            showEdit(false);
+        });
+    } else {
+        filtros.classList.remove('hidden');
+        edicion.classList.remove('showing');
+    }
 }
 
 function handleScroll() {

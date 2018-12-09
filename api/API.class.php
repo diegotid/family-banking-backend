@@ -125,7 +125,7 @@ abstract class API
                 $clean_input[$k] = $this->_cleanInputs($v);
             }
         } else {
-            $clean_input = trim(strip_tags($data));
+            $clean_input = trim(strip_tags(urldecode($data)));
         }
         return $clean_input;
     }
