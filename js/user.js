@@ -28,7 +28,6 @@ function setup() {
 function hideFilter() {
     document.querySelector('#filtros').classList.remove('showing');
     document.querySelector('#oscuro').classList.remove('showing');
-    document.querySelector('#header').classList.remove('active');
     document.body.classList.remove('freeze');
     document.body.removeEventListener('touchmove', freeze, { passive: false });
 }
@@ -59,16 +58,15 @@ function loadTable(init) {
     var tabla = document.querySelector('#movimientos');
     var campos = ['categoria', 'fecha', 'cuenta', 'importe', 'descripcion'];
 
+    var reload = (balance.innerHTML != '');
     var criterios = JSON.parse(sessionStorage.getItem('filtros'));
+
     if (criterios) {
         balance.classList.add('oculto');
         leyenda.classList.add('showing');
     }
 
-    if (init) tabla.innerHTML = '';
-
-    if (init && !criterios) {
-        balance.innerHTML = '';
+    if (!reload && !criterios) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) {
@@ -109,6 +107,8 @@ function loadTable(init) {
             });
         }
     }
+
+    if (init) tabla.innerHTML = '';
 
     var requestm = new XMLHttpRequest();
     requestm.onreadystatechange = function() {
@@ -155,6 +155,7 @@ function loadTable(init) {
                 })
             });
             loading.classList.remove('active');
+
             if (init) {
                 var start = 0;
                 var balance = document.querySelector('#balance');
@@ -260,7 +261,8 @@ function handleScroll() {
         header.classList.remove('active');
     }
 
-    if (tabla.lastChild.getBoundingClientRect().bottom < window.innerHeight * 1.5) {
+    if (tabla.lastChild
+    && tabla.lastChild.getBoundingClientRect().bottom < window.innerHeight * 1.5) {
         if (!loading.classList.contains('active')) {
             loading.classList.add('active');
             loadTable(false);
