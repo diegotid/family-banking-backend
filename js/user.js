@@ -23,6 +23,28 @@ function setup() {
         dismissFilter();
     });
     dismissFilter();
+    var palette = document.querySelector('#palette');
+    var currentColor = document.querySelector('#color');
+    currentColor.addEventListener('click', function() {
+        palette.classList.add('active');
+    });
+    var colors = document.querySelectorAll('#palette li');
+    colors.forEach(function(color) {
+        color.addEventListener('click', function(e) {
+            var style = getComputedStyle(e.target);
+            currentColor.style.backgroundColor = style.backgroundColor;
+            palette.classList.remove('active');
+        });
+    });
+}
+
+function rgb2hex(rgb) {
+    function hex(x) {    
+        var hexDigits = new Array("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"); 
+        return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
+    }
+    rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
 function hideFilter() {
@@ -75,6 +97,7 @@ function loadTable(init) {
                     if (item.balance) {
                         var celda = document.createElement('div');
                         celda.classList.add('cuenta');
+                        celda.setAttribute('color', item.color);
                         celda.id = 'c' + item.cuenta;
                         var img = document.createElement('img');
                         img.src = 'https://www.afterbanks.com/api/icons/' + item.logo + '.min.png';
@@ -130,12 +153,19 @@ function loadTable(init) {
                     }
                     if (campo == 'cuenta') {
                         celda.id = 'c' + item.cuenta.id;
-                        celda.innerHTML = '<p>' + item.cuenta.nombre + '</p>';
+                        var nombre = document.createElement('p');
+                        nombre.innerText = item.cuenta.nombre;
+                        celda.innerText = '';
+                        celda.setAttribute('color', item.cuenta.color);
+                        celda.appendChild(nombre);
                         if (item.cuenta.balance) {
-                            celda.innerHTML += '<p>' + parseFloat(item.cuenta.balance).toLocaleString('es-ES', { minimumFractionDigits: 2 }) + '</p>';
+                            var balance = document.createElement('p');
+                            balance.innerText = parseFloat(item.cuenta.balance).toLocaleString('es-ES', { minimumFractionDigits: 2 });
+                            celda.appendChild(balance);
                         }
                         var logo = document.createElement('img');
                         logo.src = 'https://www.afterbanks.com/api/icons/' + item.banco + '.min.png'
+                        logo.style.borderRightColor = '#' + item.cuenta.color;
                         celda.insertBefore(logo, celda.firstChild);
                         celda.addEventListener('click', filtrarPorCuenta);
                     }
@@ -188,24 +218,25 @@ function filtrarPorCuenta(e) {
     var filtros = document.querySelector('#filtros');
     var seleccion = cuenta.cloneNode(true);
     seleccion.style.opacity = 1;
+    seleccion.setAttribute('color', cuenta.getAttribute('color'));
     filtros.querySelector('#criterios').appendChild(seleccion);
-    var button = document.createElement('button');
-    button.innerText = 'Aplicar a la lista';
-    button.addEventListener('click', function() {
+    var confirmButton = filtros.querySelector('button:first-of-type');
+    var cancelButton = filtros.querySelector('button:last-of-type');
+    confirmButton.addEventListener('click', function() {
         loadTable(true);
         hideFilter();
     });
-    filtros.insertBefore(button, filtros.querySelector('button:last-of-type'));
     var buttonEdit = document.createElement('button');
     buttonEdit.innerText = 'Cambiar nombre de la cuenta';
     buttonEdit.addEventListener('click', function(e) {
         showEdit(true);
     });
-    filtros.insertBefore(buttonEdit, filtros.querySelector('button:last-of-type'));
+    filtros.insertBefore(buttonEdit, cancelButton);
     filtros.classList.add('showing');
     leyenda.classList.remove('showing');
     var criterio = cuenta.cloneNode(true);
     criterio.style.opacity = 1;
+    criterio.setAttribute('color', cuenta.getAttribute('color'));
     leyenda.querySelector('#criterios').innerHTML = '';
     leyenda.querySelector('#criterios').appendChild(criterio);
     document.querySelector('#oscuro').classList.add('showing');
@@ -220,29 +251,48 @@ var freeze = function(e) {
 function showEdit(show) {
     var filtros = document.querySelector('#filtros');
     var edicion = document.querySelector('#edit');
+    var entrada = edicion.querySelector('#nombre');
+    var color = edicion.querySelector('#color');
     if (show) {
         filtros.classList.add('hidden');
         edicion.classList.add('showing');
         edicion.querySelector('button:last-of-type').addEventListener('click', function(e) {
             showEdit(false);
         });
-        var entrada = edicion.querySelector('input');
         entrada.placeholder = filtros.querySelector('.cuenta *:nth-child(2)').innerText;
+        color.style.backgroundColor = filtros.querySelector('.cuenta').getAttribute('color');
+        edicion.insertBefore(color, edicion.querySelector('button:first-of-type'));
         edicion.querySelector('#save').addEventListener('click', function(e) {
+            if (entrada.value.trim().length == 0) {
+                entrada.value = entrada.placeholder;
+            }
             var request = new XMLHttpRequest();
             var idCuenta = filtros.querySelector('.cuenta').id.substring(1);
-            request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value));
+            var style = getComputedStyle(color);
+            var selectedColor = rgb2hex(style.backgroundColor).substring(1);
+            request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
             request.send();
             var nombres = document.querySelectorAll('.cuenta#c' + idCuenta + ' *:nth-child(2)');
             nombres.forEach(function(nombre) {
                 nombre.innerText = entrada.value;
+            });
+            var cuentas = document.querySelectorAll('.cuenta#c' + idCuenta);
+            cuentas.forEach(function(cuenta) {
+                cuenta.setAttribute('color', selectedColor);
             });
             showEdit(false);
         });
     } else {
         filtros.classList.remove('hidden');
         edicion.classList.remove('showing');
+        entrada.value = '';
+        color.style.backgroundColor = 'none';
     }
+}
+
+function updateColor(picker) {
+    var color = document.querySelector('#edit').querySelector('#color');
+    color.value = picker.toHEXString();
 }
 
 function handleScroll() {

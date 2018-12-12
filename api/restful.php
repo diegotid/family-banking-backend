@@ -12,7 +12,7 @@ class bancaAPI extends API {
       
       $cuentas = [];
       
-      $result = $con->query("SELECT C.id cuenta, logo, C.nombre nombre, descripcion, balance FROM CUENTA C JOIN BANCO B ON C.banco = B.id");
+      $result = $con->query("SELECT C.id cuenta, logo, C.nombre nombre, C.color color, descripcion, balance FROM CUENTA C JOIN BANCO B ON C.banco = B.id");
       while ($cuenta = $result->fetch_assoc()) {
         if (!isset($cuenta['nombre'])) {
           $cuenta['nombre'] = $cuenta['descripcion'];
@@ -29,9 +29,10 @@ class bancaAPI extends API {
     } else if ($this->method == 'PUT') {
 
       $id = $this->args[0];
+      $color = $this->request['color'];
       $nombre = $this->request['nombre'];
 
-      $con->query("UPDATE CUENTA SET nombre = '{$nombre}' WHERE id = {$id}");
+      $con->query("UPDATE CUENTA SET nombre = '{$nombre}', color = '{$color}' WHERE id = {$id}");
       if ($con->affected_rows > 0) {
         return array('status' => 200, 'message' => 'Success');
       } else {
@@ -54,7 +55,7 @@ class bancaAPI extends API {
 
       error_log('Filtros: ' . $filtros->cuentas);
 
-      $query = "SELECT fecha, importe, M.descripcion descripcion, T.nombre categoria, C.nombre nombre_cuenta, C.codigo codigo_cuenta, C.id id_cuenta, balance, logo banco
+      $query = "SELECT fecha, importe, M.descripcion descripcion, T.nombre categoria, C.nombre nombre_cuenta, C.codigo codigo_cuenta, C.id id_cuenta, balance, logo banco, C.color color
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
@@ -71,12 +72,14 @@ class bancaAPI extends API {
         $movimiento['importe'] = round(floatval($movimiento['importe']), 2);
         $movimiento['cuenta'] = array(
           'id' => intval($movimiento['id_cuenta']),
-          'nombre' => $movimiento['nombre_cuenta']
+          'nombre' => $movimiento['nombre_cuenta'],
+          'color' => $movimiento['color']
         );
         if ($movimiento['cuenta']['nombre'] == '') {
           $movimiento['cuenta']['nombre'] = $movimiento['codigo_cuenta'];
         }
         $movimiento['cuenta']['balance'] = $movimiento['balance'];
+        unset($movimiento['color']);
         unset($movimiento['balance']);
         unset($movimiento['codigo_cuenta']);
         unset($movimiento['nombre_cuenta']);

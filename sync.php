@@ -98,7 +98,10 @@ curl_close($ch);
 
 foreach ($banks as $bank) {
     foreach ($bank->products as $product) {
-        $con->query("UPDATE CUENTA SET codigo = '{$product->product}', balance = {$product->balance} WHERE descripcion = '{$product->description}'");
+        $con->query("UPDATE CUENTA SET codigo = '{$product->product}',
+                                    balance = {$product->balance},
+                                    color = CASE WHEN color IS NULL THEN '{$bank->color}' ELSE color END
+                                    WHERE descripcion = '{$product->description}'");
     }
 }
 

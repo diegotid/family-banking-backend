@@ -206,14 +206,57 @@ body {
     }
 
     input {
-        float: left;
-        clear: both;
         font-size: 2.5vh;
-        margin-top: 2vh;
         padding: 1.8vh 2vh;
         border: 1px solid lightgrey;
         border-radius: 1.2vh;
-        width: 100%;
+
+        &#nombre {
+            float: left;
+            width: calc(100% - 11vw);
+        }
+    }
+
+    #color {
+        width: 7vw;
+        height: 6.7vh;
+        float: right;
+        margin-top: 0.2vh;
+        border: 1px solid lightgrey;
+        border-radius: 1.2vh;
+    }
+
+    #palette {
+        list-style-type: none;
+        border: 1px solid lightgrey;
+        margin: 0 -1vh 2vh 2vh;
+        border-radius: 1vh;
+        position: relative;
+        min-height: 4vh;
+        padding-left: 0;
+        float: right;
+        width: auto;
+
+        display: none;
+        &.active {
+            display: inline;
+        }
+    
+        li {
+            cursor: pointer;
+            float: right;
+            margin: 1vh;
+            width: 8vw;
+            min-height: 12vw;
+            border-radius: 1.2vh;
+    
+            &:nth-child(1) { background-color: #513c55; }
+            &:nth-child(2) { background-color: #ed4a71; }
+            &:nth-child(3) { background-color: #fe7c0c; }
+            &:nth-child(4) { background-color: #fed06e; }
+            &:nth-child(5) { background-color: #25d5a1; }
+            &:nth-child(6) { background-color: #1e8bb0; }
+        }
     }
 }
 
