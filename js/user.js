@@ -2,18 +2,9 @@
 var midScreen = 2;
 
 function setup() {
-    document.addEventListener('scroll', handleScroll);
     var header = document.querySelector('#header');
     header.querySelector('#up').addEventListener('click', function() {
-        var start = 0;
-        var balance = document.querySelector('#balance');
-        if (balance.classList.contains('oculto')) {
-            start = document.querySelector('.descripcion').previousSibling.previousSibling.getBoundingClientRect().top;
-        } else {
-            start = balance.getBoundingClientRect().top;
-        }
-        start -= window.innerHeight / 100,
-        window.scroll({top: start, behaviour: 'smooth'})
+        scrollToTop();
         header.classList.remove('active');
     });
     document.querySelector('#filtros button:last-of-type').addEventListener('click', function() {
@@ -59,7 +50,9 @@ function dismissFilter() {
     var filtros = document.querySelector('#filtros');
     filtros.querySelector('#criterios').innerHTML = '';
     filtros.querySelectorAll('button').forEach(function(boton) {
-        if (boton.id != 'dismiss') boton.remove();
+        if (boton.id != 'dismiss' && boton.id != 'save') {
+            boton.remove();
+        }
     });
     var posiciones = document.querySelectorAll('.posicion');
     posiciones.forEach(function(posicion) {
@@ -178,29 +171,30 @@ function loadTable(init) {
                             fecha.innerText = formatDate(cuando, true);            
                         }
                     }
-                    celda.style.opacity = !init ? 0 :
-                    (celda.getBoundingClientRect().top < (window.innerHeight / midScreen)) ?
-                    celda.getBoundingClientRect().top / (window.innerHeight / midScreen) :
-                    (2 * window.innerHeight / midScreen - celda.getBoundingClientRect().top) / (window.innerHeight / midScreen);
                 })
             });
             loading.classList.remove('active');
 
             if (init) {
-                var start = 0;
-                var balance = document.querySelector('#balance');
-                if (!balance || balance.classList.contains('oculto')) {
-                    start = tabla.querySelector('.descripcion').previousSibling.previousSibling.getBoundingClientRect().top;
-                } else {
-                    start = balance.getBoundingClientRect().top;
-                }
-                start -= window.innerHeight / 100;
-                window.scroll({top: start, behaviour: 'smooth'})
+                scrollToTop();
             }
         }
     }
     requestm.open('GET', 'api/movimientos/' + (init ? '' : tabla.childNodes.length / 5) + '?q=' + encodeURIComponent(JSON.stringify(criterios)));
     requestm.send();
+}
+
+function scrollToTop() {
+    document.removeEventListener('scroll', handleScroll);
+    var start = 0;
+    var balance = document.querySelector('#balance');
+    if (balance && !balance.classList.contains('oculto')) {
+        var cuenta = document.querySelector('#cabecera .cuenta');
+        start = cuenta.getBoundingClientRect().top;
+        start -= 4 * window.innerHeight / 100;
+    }
+    window.scroll({top: start, behaviour: 'smooth'})
+    document.addEventListener('scroll', handleScroll);
 }
 
 function filtrarPorCuenta(e) {
