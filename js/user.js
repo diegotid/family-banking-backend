@@ -71,7 +71,7 @@ function loadTable(init) {
     var balance = document.querySelector('#balance');
     var leyenda = document.querySelector('#leyenda');
     var tabla = document.querySelector('#movimientos');
-    var campos = ['categoria', 'fecha', 'cuenta', 'importe', 'descripcion'];
+    var campos = ['fecha', 'cuenta', 'importe', 'descripcion', 'categoria'];
 
     var reload = (balance.innerHTML != '');
     var criterios = JSON.parse(sessionStorage.getItem('filtros'));
@@ -158,9 +158,12 @@ function loadTable(init) {
                         }
                         var logo = document.createElement('img');
                         logo.src = 'https://www.afterbanks.com/api/icons/' + item.banco + '.min.png'
-                        logo.style.borderRightColor = '#' + item.cuenta.color;
                         celda.insertBefore(logo, celda.firstChild);
                         celda.addEventListener('click', filtrarPorCuenta);
+                    }
+                    if (campo == 'categoria') {
+                        celda.id = 't' + item.categoria.id;
+                        celda.innerText = item.categoria.nombre;
                     }
                     tabla.appendChild(celda);
                     if (campo == 'descripcion') {
@@ -325,6 +328,7 @@ function handleScroll() {
         } else {
             item.classList.remove('focused');
             item.style.opacity =
+            item.nextSibling.style.opacity =
             item.previousSibling.style.opacity =
             item.previousSibling.previousSibling.style.opacity =
             item.getBoundingClientRect().top > window.innerHeight ? 0 :

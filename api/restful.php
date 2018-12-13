@@ -55,7 +55,7 @@ class bancaAPI extends API {
 
       error_log('Filtros: ' . $filtros->cuentas);
 
-      $query = "SELECT fecha, importe, M.descripcion descripcion, T.nombre categoria, C.nombre nombre_cuenta, C.codigo codigo_cuenta, C.id id_cuenta, balance, logo banco, C.color color
+      $query = "SELECT fecha, importe, M.descripcion descripcion, T.id id_categoria, T.nombre nombre_categoria, C.nombre nombre_cuenta, C.codigo codigo_cuenta, C.id id_cuenta, balance, logo banco, C.color color
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
@@ -70,6 +70,10 @@ class bancaAPI extends API {
       $result = $con->query($query);
       while ($movimiento = $result->fetch_assoc()) {
         $movimiento['importe'] = round(floatval($movimiento['importe']), 2);
+        $movimiento['categoria'] = array(
+          'id' => intval($movimiento['id_categoria']),
+          'nombre' => $movimiento['nombre_categoria']
+        );
         $movimiento['cuenta'] = array(
           'id' => intval($movimiento['id_cuenta']),
           'nombre' => $movimiento['nombre_cuenta'],
@@ -81,6 +85,8 @@ class bancaAPI extends API {
         $movimiento['cuenta']['balance'] = $movimiento['balance'];
         unset($movimiento['color']);
         unset($movimiento['balance']);
+        unset($movimiento['id_categoria']);
+        unset($movimiento['nombre_categoria']);
         unset($movimiento['codigo_cuenta']);
         unset($movimiento['nombre_cuenta']);
         unset($movimiento['id_cuenta']);
