@@ -165,6 +165,8 @@ function loadTable(init) {
                         celda.id = 'c' + item.cuenta.id;
                         var nombre = document.createElement('p');
                         nombre.innerText = item.cuenta.nombre;
+                        nombre.style.color = '#' + item.cuenta.color;
+                        nombre.style.borderColor = '#' + item.cuenta.color;
                         celda.innerText = '';
                         celda.setAttribute('color', item.cuenta.color);
                         celda.appendChild(nombre);
