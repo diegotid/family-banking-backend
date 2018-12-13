@@ -329,51 +329,98 @@ body {
         left: 0;
         right: 0;
         bottom: 0;
-        height: 40vh;
-        display: flex;
-        flex-wrap: wrap;
+        height: auto;
+        min-height: 40vh;
         padding: 3vh 2.5vw;
         position: absolute;
+        overflow: hidden;
         background-image: linear-gradient(to bottom right, $mgreenlight, $mgreen);
         transition: 1s;
 
         &.oculto {
             display: none;
             transition: 1s;
-        }
-
+        }        
+        
         @media screen and (min-width: $mobile) {
             max-width: 440px;
+        }    
+
+        #tarjetas,
+        #cuentas {
+            width: 100%;
+            display: flex;
+            min-height: 19vh;
+            flex-wrap: nowrap;
+    
+            div {
+                flex-grow: 1;
+                color: white;
+                overflow: hidden;
+                box-sizing: border-box;
+                width: calc(33% - 4vh);
+                min-height: 6.5vh;
+                margin: auto 1vw 5vh 1vw;
+                padding: 0 1vw;
+                text-align: center;
+                margin-top: auto;
+                margin-bottom: 1.5vh;
+                white-space: nowrap;
+                cursor: pointer;            
+
+                &.bankrupt {
+                    border: 1px solid red;
+                    border-radius: 2vh;
+                }
+
+                img {
+                    width: 9vh;
+                    padding-top: 1vh;
+                    border: none !important;
+                }
+                
+                div {
+                    width: auto;
+                    border: none;
+                    margin: auto;
+                    padding: 0.1vh;
+                    min-height: auto;
+                    border-radius: 0;
+                    background: none;
+                    
+                    &:nth-child(2) {
+                        width: auto;
+                        color: white;
+                        font-size: 4vw;
+                        font-weight: 300;
+                        margin-top: 1vh;
+                        padding: 0.5vh 2.5vw;
+                        border-radius: 1vh;
+                        display: table;
+                    }
+
+                    &:nth-child(3) {
+                        margin-top: 0.3vh;
+                        padding-bottom: 1vh;
+                        font-size: 6vw;
+                    }
+                }
+            }
         }
 
-        div {
-            flex-grow: 1;
-            color: white;
-            overflow: hidden;
-            box-sizing: border-box;
-            width: calc(33% - 4vh);
-            margin: auto 1vw 3vh 1vw;
-            text-align: center;
-            margin-top: auto;
-            cursor: pointer;
-
-            img {
-                width: 9vh;
-                padding-top: 2vh;
-                border: none !important;
-            }
+        #tarjetas {
+            border-radius: 1.5vh;
+            background-color: rgba(0, 0, 0, 0.1);
 
             div {
-                width: auto;
-                margin: auto;
-                &:nth-child(2) {
-                    font-size: 4vw;
-                    font-weight: 300;
-                }
-                &:nth-child(3) {
-                    font-size: 6vw;
-                }
+                padding: 1vh 1vw;
+                div { padding: 0.1vh; }
+                img { padding-top: 2vh; }
             }
+        }
+
+        #cuentas {
+            margin-top: 1.8vh;
         }
     }
 

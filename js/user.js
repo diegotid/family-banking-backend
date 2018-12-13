@@ -87,7 +87,7 @@ function loadTable(init) {
     var tabla = document.querySelector('#movimientos');
     var campos = ['fecha', 'cuenta', 'importe', 'descripcion', 'categoria'];
 
-    var reload = (balance.innerHTML != '');
+    var reload = (balance.querySelector('#cuentas').childElementCount > 1);
     var criterios = JSON.parse(sessionStorage.getItem('filtros'));
 
     if (criterios) {
@@ -101,23 +101,26 @@ function loadTable(init) {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
                 response['cuentas'].forEach(function(item) {
+                    var celda = document.createElement('div');
+                    celda.classList.add('cuenta');
+                    celda.setAttribute('color', item.color);
+                    celda.id = 'c' + item.cuenta;
+                    var img = document.createElement('img');
+                    img.src = 'https://www.afterbanks.com/api/icons/' + item.logo + '.min.png';
+                    celda.appendChild(img);
+                    var nombre = document.createElement('div');
+                    nombre.innerText = item.nombre;
+                    nombre.style.backgroundColor = '#' + item.color;
+                    celda.appendChild(nombre);
                     if (item.balance) {
-                        var celda = document.createElement('div');
-                        celda.classList.add('cuenta');
-                        celda.setAttribute('color', item.color);
-                        celda.id = 'c' + item.cuenta;
-                        var img = document.createElement('img');
-                        img.src = 'https://www.afterbanks.com/api/icons/' + item.logo + '.min.png';
-                        celda.appendChild(img);
-                        var nombre = document.createElement('div');
-                        nombre.innerText = item.nombre;
-                        celda.appendChild(nombre);
                         var importe = document.createElement('div');
                         importe.innerText = item.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 });
                         celda.appendChild(importe);
-                        celda.addEventListener('click', filtrarPorCuenta);
-                        balance.appendChild(celda);
+                        balance.querySelector('#cuentas').appendChild(celda);
+                    } else {
+                        balance.querySelector('#tarjetas').appendChild(celda);
                     }
+                    celda.addEventListener('click', filtrarPorCuenta);
                 });
             }
         };
