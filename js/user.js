@@ -14,6 +14,20 @@ function setup() {
         dismissFilter();
     });
     dismissFilter();
+
+    var filtros = document.querySelector('#filtros');
+    var confirmButton = filtros.querySelector('button:first-of-type');
+    confirmButton.addEventListener('click', function() {
+        loadTable(true);
+        hideFilter();
+    });
+
+    var edicion = document.querySelector('#edit');
+    edicion.querySelector('#save').addEventListener('click', guardarCuenta);
+    edicion.querySelector('button:last-of-type').addEventListener('click', function(e) {
+        showEdit(false);
+    });
+
     var palette = document.querySelector('#palette');
     var currentColor = document.querySelector('#color');
     currentColor.addEventListener('click', function() {
@@ -217,12 +231,7 @@ function filtrarPorCuenta(e) {
     seleccion.style.opacity = 1;
     seleccion.setAttribute('color', cuenta.getAttribute('color'));
     filtros.querySelector('#criterios').appendChild(seleccion);
-    var confirmButton = filtros.querySelector('button:first-of-type');
     var cancelButton = filtros.querySelector('button:last-of-type');
-    confirmButton.addEventListener('click', function() {
-        loadTable(true);
-        hideFilter();
-    });
     var buttonEdit = document.createElement('button');
     buttonEdit.innerText = 'Cambiar nombre de la cuenta';
     buttonEdit.addEventListener('click', function(e) {
@@ -253,38 +262,41 @@ function showEdit(show) {
     if (show) {
         filtros.classList.add('hidden');
         edicion.classList.add('showing');
-        edicion.querySelector('button:last-of-type').addEventListener('click', function(e) {
-            showEdit(false);
-        });
         entrada.placeholder = filtros.querySelector('.cuenta *:nth-child(2)').innerText;
         color.style.backgroundColor = filtros.querySelector('.cuenta').getAttribute('color');
         edicion.insertBefore(color, edicion.querySelector('button:first-of-type'));
-        edicion.querySelector('#save').addEventListener('click', function(e) {
-            if (entrada.value.trim().length == 0) {
-                entrada.value = entrada.placeholder;
-            }
-            var request = new XMLHttpRequest();
-            var idCuenta = filtros.querySelector('.cuenta').id.substring(1);
-            var style = getComputedStyle(color);
-            var selectedColor = rgb2hex(style.backgroundColor).substring(1);
-            request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
-            request.send();
-            var nombres = document.querySelectorAll('.cuenta#c' + idCuenta + ' *:nth-child(2)');
-            nombres.forEach(function(nombre) {
-                nombre.innerText = entrada.value;
-            });
-            var cuentas = document.querySelectorAll('.cuenta#c' + idCuenta);
-            cuentas.forEach(function(cuenta) {
-                cuenta.setAttribute('color', selectedColor);
-            });
-            showEdit(false);
-        });
     } else {
         filtros.classList.remove('hidden');
         edicion.classList.remove('showing');
         entrada.value = '';
         color.style.backgroundColor = 'none';
     }
+}
+
+function guardarCuenta() {
+    var filtros = document.querySelector('#filtros');
+    var edicion = document.querySelector('#edit');
+    var entrada = edicion.querySelector('#nombre');
+    var color = edicion.querySelector('#color');
+    if (entrada.value.trim().length == 0) {
+        entrada.value = entrada.placeholder;
+    }
+    var request = new XMLHttpRequest();
+    var idCuenta = filtros.querySelector('.cuenta').id.substring(1);
+    var style = getComputedStyle(color);
+    var selectedColor = rgb2hex(style.backgroundColor).substring(1);
+    request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
+    request.send();
+    var nombres = document.querySelectorAll('.cuenta#c' + idCuenta + ' *:nth-child(2)');
+    nombres.forEach(function(nombre) {
+        console.log(nombre.innerHTML + ' <- ' + entrada.value);
+        nombre.innerText = entrada.value;
+    });
+    var cuentas = document.querySelectorAll('.cuenta#c' + idCuenta);
+    cuentas.forEach(function(cuenta) {
+        cuenta.setAttribute('color', selectedColor);
+    });
+    showEdit(false);
 }
 
 function updateColor(picker) {
