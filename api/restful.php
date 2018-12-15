@@ -49,23 +49,23 @@ class bancaAPI extends API {
 
       $movimientos = [];
       
-      $offset = $this->args[0];
-      if (!isset($offset)) $offset = 0;
+      $offset = 0;
+      if (isset($this->args[0])) $offset = $this->args[0];
       $filtros = json_decode(urldecode($this->request['q']));
-
-      error_log('Filtros: ' . $filtros->cuentas);
 
       $query = "SELECT fecha, importe, M.descripcion descripcion, T.id id_categoria, T.nombre nombre_categoria, C.nombre nombre_cuenta, C.codigo codigo_cuenta, C.id id_cuenta, balance, logo banco, C.color color
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
-                JOIN CATEGORIA T ON categoria = T.id";
+                JOIN CATEGORIA T ON categoria = T.id
+                WHERE TRUE";
       if (isset($filtros->cuentas)) {
-        $query .= " WHERE C.id = " . $filtros->cuentas;
+        $query .= " AND C.id = " . $filtros->cuentas;
+      }
+      if (isset($filtros->categorias)) {
+        $query .= " AND T.id = " . $filtros->categorias;
       }
       $query .= " ORDER BY fecha DESC LIMIT " . $offset . ", 20";
-
-      error_log('Query: ' . $query);
 
       $result = $con->query($query);
       while ($movimiento = $result->fetch_assoc()) {
@@ -93,7 +93,22 @@ class bancaAPI extends API {
         array_push($movimientos, $movimiento);
       }
 
-      return array('status' => 200, 'movimientos' => $movimientos);
+      $resultado = [];
+      $resultado['lista'] = $movimientos;
+
+      if ($offset == 0
+      && isset($filtros->categorias)) {
+        $query = "SELECT SUM(importe) total, MIN(fecha) desde, MAX(fecha) hasta
+                  FROM MOVIMIENTO WHERE categoria = " . $filtros->categorias;
+        if (isset($filtros->cuentas)) {
+          $query .= " AND cuenta = " . $filtros->cuentas;
+        }
+        error_log('Query: ' . $query);
+        $result = $con->query($query);
+        $resultado['resumen'] = $result->fetch_assoc();
+      }
+
+      return array('status' => 200, 'movimientos' => $resultado);
     }
   }
 }
