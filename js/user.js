@@ -119,7 +119,10 @@ function loadTable(init) {
                         var importe = document.createElement('div');
                         importe.innerText = item.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 });
                         celda.appendChild(importe);
-                        balance.querySelector('#cuentas').appendChild(celda);
+                        if (item.balance < 0) {
+                            celda.classList.add('bankrupt');
+                        }
+                    balance.querySelector('#cuentas').appendChild(celda);
                     } else {
                         balance.querySelector('#tarjetas').appendChild(celda);
                     }
@@ -137,7 +140,7 @@ function loadTable(init) {
             var posiciones = document.querySelectorAll('.posicion');
             posiciones.forEach(function(posicion) {
                 var pos = heading.cloneNode(true);
-                pos.style.opacity = 0.15;
+                pos.style.opacity = 0.5;
                 posicion.innerHTML = '';
                 posicion.appendChild(pos);
             });
