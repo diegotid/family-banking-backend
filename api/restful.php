@@ -4,12 +4,23 @@ require_once 'API.class.php';
 
 class bancaAPI extends API {
 
+  protected function login() {
+
+    if ($this->method == 'PUT') {
+      return array('status' => 200, 'token' => $this->token);
+    }
+  }
+
   protected function cuentas() {
 
     global $con;
     
     if ($this->method == 'GET') {
       
+      if (!isset($this->token)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+  
       $cuentas = [];
       
       $result = $con->query("SELECT C.id cuenta, logo, C.nombre nombre, C.color color, descripcion, balance FROM CUENTA C JOIN BANCO B ON C.banco = B.id");
@@ -28,6 +39,10 @@ class bancaAPI extends API {
 
     } else if ($this->method == 'PUT') {
 
+      if (!isset($this->token)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+  
       $id = $this->args[0];
       $color = $this->request['color'];
       $nombre = $this->request['nombre'];
@@ -47,6 +62,10 @@ class bancaAPI extends API {
 
     if ($this->method == 'GET') {
 
+      if (!isset($this->token)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+  
       $movimientos = [];
       
       $offset = 0;

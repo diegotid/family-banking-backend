@@ -30,6 +30,37 @@ body {
     }
 }
 
+#login {
+    width: 60vw;
+    margin: 9vh auto;
+    left: 0;
+    right: 0;
+    font-size: 6vw;
+    font-weight: 300;
+    text-align: center;
+
+    &.hidden {
+        display: none;
+    }
+
+    img {
+        display: block;
+        margin: auto;
+        width: 60vw;
+    }
+
+    button {
+        color: white;
+        font-size: 6vw;
+        font-weight: 300;
+        padding: 1vh 3vw;
+        width: 100%;
+        margin: 7vh 0;
+        background-color: $mgreen;
+        border-radius: 1vh;
+    }
+}
+
 #header {
     left: 0;
     right: 0;

@@ -1,7 +1,28 @@
 
 var midScreen = 2;
 
+function auth() {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        console.log('Status login: ' + request.status + ', ready: ' + request.readyState);
+        if (request.readyState == 4 && request.status == 200) {
+            var response = JSON.parse(request.responseText);
+            window.localStorage.setItem('token', response.token);
+            var login = document.querySelector('#login');
+            login.classList.remove('hidden');
+        }
+    };
+    request.open('PUT', '../api/login/'); // Llamado desde /login
+    request.send();
+}
+
 function setup() {
+
+    if (!window.localStorage.getItem('token')) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     var header = document.querySelector('#header');
     header.querySelector('#up').addEventListener('click', function() {
         scrollToTop();
@@ -128,9 +149,12 @@ function loadTable(init) {
                     }
                     celda.addEventListener('click', filtrarPorCuenta);
                 });
+            } else if (request.readyState == 4 && (request.status == 401 || request.status == 0)) {
+                document.location = 'login.html';
             }
         };
         request.open('GET', 'api/cuentas/');
+        request.setRequestHeader('Authorization', localStorage.getItem('token'));
         request.send();
     }
 
@@ -238,9 +262,12 @@ function loadTable(init) {
             if (init) {
                 scrollToTop();
             }
+        } else if (requestm.readyState == 4 && (requestm.status == 401 || requestm.status == 0)) {
+            document.location = 'login.html';
         }
     }
     requestm.open('GET', 'api/movimientos/' + (init ? '' : tabla.childNodes.length / 5) + '?q=' + encodeURIComponent(JSON.stringify(criterios)));
+    requestm.setRequestHeader('Authorization', localStorage.getItem('token'));
     requestm.send();
 }
 
@@ -366,15 +393,14 @@ function guardarCuenta() {
     var style = getComputedStyle(color);
     var selectedColor = rgb2hex(style.backgroundColor).substring(1);
     request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
+    request.setRequestHeader('Authorization', localStorage.getItem('token'));
     request.send();
     var cuentas = document.querySelectorAll('#c' + idCuenta);
     cuentas.forEach(function(cuenta) {
-        console.log(cuenta.nodeName);
         var nombre = cuenta.querySelector('p,div:nth-child(2)');
         nombre.innerText = entrada.value;
         cuenta.setAttribute('color', selectedColor);
         if (nombre.nodeName.toLowerCase() == 'div') {
-            console.log(nombre.nodeName + ': ' + nombre.style.backgroundColor);
             nombre.style.backgroundColor = '#' + selectedColor;
         } else {
             nombre.style.borderColor = '#' + selectedColor;
