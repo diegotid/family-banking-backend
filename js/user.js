@@ -237,7 +237,9 @@ function loadTable(init) {
                 saldo.classList.add('saldo');
                 var importe = document.createElement('span');
                 importe.classList.add('importe');
-                importe.innerText = parseFloat(response.movimientos.resumen.total).toLocaleString('es-ES', { minimumFractionDigits: 2 });
+                var total = response.movimientos.resumen.total;
+                if (!total || isNaN(total)) total = '0';
+                importe.innerText = parseFloat(total).toLocaleString('es-ES', { minimumFractionDigits: 2 });
                 if (response.movimientos.resumen.total > 0) {
                     importe.innerText = '+ ' + importe.innerText;
                     importe.classList.add('positive');
@@ -246,7 +248,11 @@ function loadTable(init) {
                 saldo.appendChild(importe);
                 saldo.appendChild(document.querySelector('#criterios .categoria').cloneNode(true));
                 var desde = document.createElement('span');
-                desde.innerText = 'desde ' + formatDate(new Date(response.movimientos.resumen.desde));
+                if (criterios.fechas) {
+                    desde.innerText = 'desde ' + formatDate(new Date(response.movimientos.resumen.desde));
+                } else {
+                    desde.innerHTML = 'el &uacute;ltimo mes';
+                }
                 saldo.appendChild(desde);
                 var posiciones = document.querySelectorAll('.posicion');
                 posiciones.forEach(function(posicion) {
@@ -273,6 +279,7 @@ function loadTable(init) {
 
 function scrollToTop() {
     document.removeEventListener('scroll', handleScroll);
+    document.querySelector('#header').classList.remove('active');
     var start = 0;
     var balance = document.querySelector('#balance');
     if (balance && !balance.classList.contains('oculto')) {
@@ -422,9 +429,8 @@ function handleScroll() {
     var header = document.querySelector('#header');
     var fecha = document.querySelector('#fecha');
 
-    if (!balance
-    || balance.classList.contains('oculto')
-    || balance.getBoundingClientRect().bottom < 0) {
+    if (document.body.scrollTop > 0
+    && (!balance || balance.classList.contains('oculto') || balance.getBoundingClientRect().bottom < 0)) {
         header.classList.add('active');
     } else {
         header.classList.remove('active');

@@ -122,7 +122,11 @@ class bancaAPI extends API {
         if (isset($filtros->cuentas)) {
           $query .= " AND cuenta = " . $filtros->cuentas;
         }
-        error_log('Query: ' . $query);
+        if (isset($filtros->fechas)) {
+          $query .= "";
+        } else {
+          $query .= " AND fecha BETWEEN (CURRENT_DATE - INTERVAL 1 MONTH) AND CURRENT_DATE";
+        }
         $result = $con->query($query);
         $resultado['resumen'] = $result->fetch_assoc();
       }
