@@ -1,7 +1,7 @@
 <html>
 <head>
-    <link rel="stylesheet" href="styles/web.css?v=201812080249">
-    <script type="text/javascript" src="js/user-min.js?v=201812080239"></script>
+    <link rel="stylesheet" href="styles/web.css?v=201812170227">
+    <script type="text/javascript" src="js/user-min.js?v=201812170233"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet">
 <head>
 <body onload="setup()">
@@ -33,7 +33,8 @@
         <button id="dismiss">Cancelar</button>
     </div>
     <div id="edit">
-        <span>Nombre de la cuenta</span>
+        <span>Nombre de la&nbsp;</span>
+        <span id="concepto"></span>
         <ul id="palette">
             <li></li>
             <li></li>
@@ -48,8 +49,10 @@
         <button id="dismiss">Cancelar</button>
     </div>
     <div id="leyenda">
-        <span>Filtrando por...</span>
+        <span id="defecto">Mostrando todos los movimientos</span>
+        <span id="filtrando">Filtrando por...</span>
         <div id="criterios"></div>
+        <button id="filtrar">Filtrar</button>
         <button id="dismiss">Cancelar</button>
     </div>
 </body>

@@ -63,6 +63,41 @@ class bancaAPI extends API {
       }
     }
   }
+
+  protected function categorias() {
+
+    global $con;
+    
+    if ($this->method == 'GET') {
+      
+      if (!isset($this->token)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+  
+      $total = 0;
+      $lista = [];
+      $filtros = json_decode(urldecode($this->request['q']));
+      
+      $condicion = "M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
+      if (isset($filtros->cuenta)) {
+        $condicion .= " AND M.cuenta = " . $filtros->cuenta;
+      }
+      $query = "SELECT C.id id, C.nombre nombre, COUNT(*) numero
+                FROM CATEGORIA C JOIN MOVIMIENTO M ON M.categoria = C.id
+                WHERE " . $condicion . "
+                GROUP BY C.id ORDER BY numero DESC LIMIT 10";
+
+      $result = $con->query($query);
+      while ($categoria = $result->fetch_assoc()) {
+        array_push($lista, $categoria);
+      }
+
+      $categorias = [];
+      $categorias['lista'] = $lista;
+      
+      return array('status' => 200, 'categorias' => $categorias);
+    }
+  }
   
   protected function movimientos() {
     
@@ -86,11 +121,11 @@ class bancaAPI extends API {
                 JOIN BANCO B ON C.banco = B.id
                 JOIN CATEGORIA T ON categoria = T.id
                 WHERE TRUE";
-      if (isset($filtros->cuentas)) {
-        $query .= " AND C.id = " . $filtros->cuentas;
+      if (isset($filtros->cuenta)) {
+        $query .= " AND C.id = " . $filtros->cuenta;
       }
-      if (isset($filtros->categorias)) {
-        $query .= " AND T.id = " . $filtros->categorias;
+      if (isset($filtros->categoria)) {
+        $query .= " AND T.id = " . $filtros->categoria;
       }
       $query .= " ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
@@ -124,11 +159,11 @@ class bancaAPI extends API {
       $resultado['lista'] = $movimientos;
 
       if ($offset == 0
-      && isset($filtros->categorias)) {
+      && isset($filtros->categoria)) {
         $query = "SELECT SUM(importe) total, MIN(fecha) desde, MAX(fecha) hasta
-                  FROM MOVIMIENTO WHERE categoria = " . $filtros->categorias;
-        if (isset($filtros->cuentas)) {
-          $query .= " AND cuenta = " . $filtros->cuentas;
+                  FROM MOVIMIENTO WHERE categoria = " . $filtros->categoria;
+        if (isset($filtros->cuenta)) {
+          $query .= " AND cuenta = " . $filtros->cuenta;
         }
         if (isset($filtros->fechas)) {
           $query .= "";

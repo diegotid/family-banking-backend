@@ -4,7 +4,6 @@ var midScreen = 2;
 function auth() {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
-        console.log('Status login: ' + request.status + ', ready: ' + request.readyState);
         if (request.readyState == 4 && request.status == 200) {
             var response = JSON.parse(request.responseText);
             window.localStorage.setItem('token', response.token);
@@ -31,8 +30,11 @@ function setup() {
     document.querySelector('#filtros button:last-of-type').addEventListener('click', function() {
         dismissFilter();
     });
-    document.querySelector('#leyenda button:last-of-type').addEventListener('click', function() {
+    document.querySelector('#leyenda button#dismiss').addEventListener('click', function() {
         dismissFilter();
+    });
+    document.querySelector('#leyenda button#filtrar').addEventListener('click', function() {
+        showFilter();
     });
     dismissFilter();
 
@@ -44,7 +46,7 @@ function setup() {
     });
 
     var edicion = document.querySelector('#edit');
-    edicion.querySelector('#save').addEventListener('click', guardarCuenta);
+    edicion.querySelector('#save').addEventListener('click', saveEdit);
     edicion.querySelector('button:last-of-type').addEventListener('click', function(e) {
         showEdit(false);
     });
@@ -73,6 +75,43 @@ function rgb2hex(rgb) {
     return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
+function showFilter() {
+    var filtros = document.querySelector('#filtros');
+    filtros.querySelectorAll('button').forEach(function(boton) {
+        if (boton.id != 'dismiss' && boton.id != 'save') {
+            boton.remove();
+        }
+    });
+    filtros.classList.add('showing');
+    document.querySelector('#leyenda').classList.remove('showing');
+    document.querySelector('#oscuro').classList.add('showing');
+    document.body.classList.add('freeze');
+    document.body.addEventListener('touchmove', freeze, { passive: false });
+    filtros.querySelector('button#save').style.display = 'none';
+    var cancelButton = filtros.querySelector('button:last-of-type');
+    var buttonCuenta = document.createElement('button');
+    buttonCuenta.innerText = 'Filtrar por cuenta';
+    buttonCuenta.id = 'cuenta';
+    buttonCuenta.addEventListener('click', showCuentasFilter);
+    filtros.insertBefore(buttonCuenta, cancelButton);
+    var buttonCategoria = document.createElement('button');
+    buttonCategoria.innerText = 'Filtrar por categoría';
+    buttonCategoria.id = 'categoria';
+    buttonCategoria.addEventListener('click', showCategoriasFilter);
+    filtros.insertBefore(buttonCategoria, cancelButton);
+}
+
+function showCuentasFilter() {
+    var criterios = document.querySelector('#filtros #criterios');
+    var cuentas = document.querySelectorAll('#cuentas div.cuenta');
+    cuentas.forEach(function(cuenta) {
+        var opcion = cuenta.cloneNode(true);
+        opcion.addEventListener('click', filtrarPorCuenta);
+        criterios.appendChild(opcion);
+    });
+    mostrarBotonesFiltro(false);
+}
+
 function hideFilter() {
     document.querySelector('#filtros').classList.remove('showing');
     document.querySelector('#oscuro').classList.remove('showing');
@@ -98,8 +137,149 @@ function dismissFilter() {
     });
     document.querySelector('#balance').classList.remove('oculto');
     document.querySelector('#leyenda').classList.remove('showing');
+    document.querySelector('#leyenda').classList.remove('filtrando');
     hideFilter();
     loadTable(true);
+}
+
+function showCategoriasFilter() {
+    var criterios = document.querySelector('#filtros #criterios');
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            var response = JSON.parse(request.responseText);
+            response.categorias.lista.forEach(function(categoria) {
+                var opcion = document.createElement('div');
+                opcion.classList.add('opcion');
+                var seleccion = document.createElement('div');
+                seleccion.id = 't' + categoria.id;
+                seleccion.innerText = categoria.nombre;
+                seleccion.classList.add('categoria');
+                seleccion.classList.add('test');
+                seleccion.addEventListener('click', function(e) {
+                    var filtros = document.querySelector('#filtros');
+                    filtros.querySelector('button#save').style.display = 'inline-block';
+                    var opciones = criterios.querySelectorAll('.opcion');
+                    opciones.forEach(function(item) { item.remove(); });
+                    filtrarPorCategoria(e);
+                });
+                opcion.appendChild(seleccion);
+                var numero = document.createElement('p');
+                numero.innerText = categoria.numero;
+                opcion.appendChild(numero);
+                criterios.appendChild(opcion);
+            });
+            var tip = document.createElement('span');
+            if (response.categorias.lista.length > 0) {
+                tip.innerHTML += '<span>(n&uacute;mero de movimientos en el &uacute;ltimo mes)</span>';
+            } else {
+                tip.innerHTML += '<span>No hay movimientos en el &uacute;ltimo mes</span>';
+            }
+            criterios.appendChild(tip);
+        }
+    };
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
+    request.open('GET', 'api/categorias?q=' + encodeURIComponent(JSON.stringify(filtros)));
+    request.setRequestHeader('Authorization', localStorage.getItem('token'));
+    request.send();
+    mostrarBotonesFiltro(false);
+}
+
+function filtrarPorCategoria(e) {
+    var categoria = e.target;
+    var filtros = sessionStorage.getItem('filtros');
+    if (filtros) {
+        filtros = JSON.parse(filtros);
+        if (filtros.categoria && filtros.categoria == categoria.id.substring(1)) {
+            return;
+        } else {
+            filtros.categoria = categoria.id.substring(1);
+        }
+    } else {
+        filtros = {'categoria': categoria.id.substring(1)};
+    }
+    sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    var filtros = document.querySelector('#filtros');
+    var seleccion = categoria.cloneNode(true);
+    seleccion.style.opacity = 1;
+    filtros.querySelector('#criterios').appendChild(seleccion);
+    var tip = filtros.querySelector('#criterios span');
+    if (tip) tip.remove();
+    actualizarBotonesFiltro();
+    var criterio = categoria.cloneNode(true);
+    criterio.style.opacity = 1;
+    leyenda.querySelector('#criterios').appendChild(criterio);
+}
+
+function filtrarPorCuenta(e) {
+    var cuenta = e.target;
+    while (!cuenta.classList.contains('cuenta')) cuenta = cuenta.parentNode;
+    var filtros = sessionStorage.getItem('filtros');
+    if (filtros) {
+        filtros = JSON.parse(filtros);
+        if (filtros.cuenta && filtros.cuenta == cuenta.id.substring(1)) {
+            return;
+        } else {
+            filtros.cuenta = cuenta.id.substring(1);
+        }
+    } else {
+        filtros = {'cuenta': cuenta.id.substring(1)};
+    }
+    sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    var filtros = document.querySelector('#filtros');
+    var seleccion = cuenta.cloneNode(true);
+    seleccion.style.opacity = 1;
+    seleccion.setAttribute('color', cuenta.getAttribute('color'));
+    seleccion.classList.add('seleccionada');
+    var criterios = filtros.querySelectorAll('#criterios .cuenta');
+    criterios.forEach(function(criterio) {
+        criterio.remove();
+    });
+    filtros.querySelector('#criterios').appendChild(seleccion);
+    var criterio = cuenta.cloneNode(true);
+    criterio.style.opacity = 1;
+    criterio.setAttribute('color', cuenta.getAttribute('color'));
+    var leyenda = document.querySelector('#leyenda');
+    leyenda.querySelector('#criterios').appendChild(criterio);
+    actualizarBotonesFiltro();
+}
+
+function mostrarBotonesFiltro(mostrar) {
+    var botones = document.querySelectorAll('#filtros button:not(#save):not(#dismiss)');
+    botones.forEach(function(boton) {
+        boton.disabled = !mostrar;
+    });
+}
+
+function actualizarBotonesFiltro() {
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
+    var formulario = document.querySelector('#filtros');
+    var criterios = Object.keys(filtros);
+    criterios.forEach(function(key, index) {
+        var boton = formulario.querySelector('button#' + key);
+        if (boton) boton.remove();
+    });
+    mostrarBotonesFiltro(true);
+    if (criterios.length == 1) {
+        var buttonEdit = document.createElement('button');
+        buttonEdit.id = 'edit_button';
+        buttonEdit.innerText = 'Cambiar nombre de la ' + criterios[0];
+        buttonEdit.addEventListener('click', function(e) {
+            showEdit(true);
+        });
+        var cancelButton = formulario.querySelector('button:last-of-type');
+        formulario.insertBefore(buttonEdit, cancelButton);
+    } else {
+        var buttonEdit = formulario.querySelector('button#edit_button');
+        if (buttonEdit) buttonEdit.remove();
+    }
+    formulario.querySelector('button#save').style.display = 'inline-block';
+    formulario.classList.add('showing');
+    var leyenda = document.querySelector('#leyenda');
+    leyenda.classList.remove('showing');
+    document.querySelector('#oscuro').classList.add('showing');
+    document.body.classList.add('freeze');
+    document.body.addEventListener('touchmove', freeze, { passive: false });
 }
 
 function loadTable(init) {
@@ -214,14 +394,14 @@ function loadTable(init) {
                         var logo = document.createElement('img');
                         logo.src = 'https://www.afterbanks.com/api/icons/' + item.banco + '.min.png'
                         celda.insertBefore(logo, celda.firstChild);
-                        if (!criterios || !criterios.cuentas) {
+                        if (!criterios || !criterios.cuenta) {
                             celda.addEventListener('click', filtrarPorCuenta);
                         }
                     }
                     if (campo == 'categoria') {
                         celda.id = 't' + item.categoria.id;
                         celda.innerText = item.categoria.nombre;
-                        if (!criterios || !criterios.categorias) {
+                        if (!criterios || !criterios.categoria) {
                             celda.addEventListener('click', filtrarPorCategoria);
                         }
                     }
@@ -296,93 +476,28 @@ function scrollToTop() {
     document.addEventListener('scroll', handleScroll);
 }
 
-function filtrarPorCategoria(e) {
-    var categoria = e.target;
-    var filtros = sessionStorage.getItem('filtros');
-    if (filtros) {
-        filtros = JSON.parse(filtros);
-        if (filtros.categorias && filtros.categorias == categoria.id.substring(1)) {
-            return;
-        } else {
-            filtros.categorias = categoria.id.substring(1);
-        }
-    } else {
-        filtros = {'categorias': categoria.id.substring(1)};
-    }
-    sessionStorage.setItem('filtros', JSON.stringify(filtros));
-    var filtros = document.querySelector('#filtros');
-    var seleccion = categoria.cloneNode(true);
-    seleccion.style.opacity = 1;
-    filtros.querySelector('#criterios').appendChild(seleccion);
-    var cancelButton = filtros.querySelector('button:last-of-type');
-    var buttonEdit = document.createElement('button');
-    buttonEdit.innerText = 'Cambiar nombre de la categoria';
-    buttonEdit.addEventListener('click', function(e) {
-        showEdit(true);
-    });
-    filtros.insertBefore(buttonEdit, cancelButton);
-    filtros.classList.add('showing');
-    leyenda.classList.remove('showing');
-    var criterio = categoria.cloneNode(true);
-    criterio.style.opacity = 1;
-    leyenda.querySelector('#criterios').appendChild(criterio);
-    document.querySelector('#oscuro').classList.add('showing');
-    document.body.classList.add('freeze');
-    document.body.addEventListener('touchmove', freeze, { passive: false });
-}
-
-function filtrarPorCuenta(e) {
-    var cuenta = e.target;
-    while (!cuenta.classList.contains('cuenta')) cuenta = cuenta.parentNode;
-    var filtros = sessionStorage.getItem('filtros');
-    if (filtros) {
-        filtros = JSON.parse(filtros);
-        if (filtros.cuentas && filtros.cuentas == cuenta.id.substring(1)) {
-            return;
-        } else {
-            filtros.cuentas = cuenta.id.substring(1);
-        }
-    } else {
-        filtros = {'cuentas': cuenta.id.substring(1)};
-    }
-    sessionStorage.setItem('filtros', JSON.stringify(filtros));
-    var filtros = document.querySelector('#filtros');
-    var seleccion = cuenta.cloneNode(true);
-    seleccion.style.opacity = 1;
-    seleccion.setAttribute('color', cuenta.getAttribute('color'));
-    filtros.querySelector('#criterios').appendChild(seleccion);
-    var cancelButton = filtros.querySelector('button:last-of-type');
-    var buttonEdit = document.createElement('button');
-    buttonEdit.innerText = 'Cambiar nombre de la cuenta';
-    buttonEdit.addEventListener('click', function(e) {
-        showEdit(true);
-    });
-    filtros.insertBefore(buttonEdit, cancelButton);
-    filtros.classList.add('showing');
-    leyenda.classList.remove('showing');
-    var criterio = cuenta.cloneNode(true);
-    criterio.style.opacity = 1;
-    criterio.setAttribute('color', cuenta.getAttribute('color'));
-    leyenda.querySelector('#criterios').appendChild(criterio);
-    document.querySelector('#oscuro').classList.add('showing');
-    document.body.classList.add('freeze');
-    document.body.addEventListener('touchmove', freeze, { passive: false });
-}
-
 var freeze = function(e) {
     e.preventDefault();
 }
 
 function showEdit(show) {
+    var criterios = JSON.parse(sessionStorage.getItem('filtros'));
     var filtros = document.querySelector('#filtros');
     var edicion = document.querySelector('#edit');
     var entrada = edicion.querySelector('#nombre');
+    var concepto = Object.keys(criterios)[0];
     var color = edicion.querySelector('#color');
+    color.style.display = (concepto == 'cuenta') ? 'inline' : 'none';
     if (show) {
+        edicion.querySelector('#concepto').innerText = concepto;
         filtros.classList.add('hidden');
         edicion.classList.add('showing');
-        entrada.placeholder = filtros.querySelector('.cuenta *:nth-child(2)').innerText;
-        color.style.backgroundColor = filtros.querySelector('.cuenta').getAttribute('color');
+        if (concepto == 'cuenta') {
+            entrada.placeholder = filtros.querySelector('.' + concepto + ' *:nth-child(2)').innerText;
+            color.style.backgroundColor = filtros.querySelector('.cuenta').getAttribute('color');
+        } else {
+            entrada.placeholder = filtros.querySelector('.' + concepto).innerText;
+        }
         edicion.insertBefore(color, edicion.querySelector('button:first-of-type'));
     } else {
         filtros.classList.remove('hidden');
@@ -392,31 +507,44 @@ function showEdit(show) {
     }
 }
 
-function guardarCuenta() {
+function saveEdit() {
+    var criterios = JSON.parse(sessionStorage.getItem('filtros'));
+    var concepto = Object.keys(criterios)[0];
     var filtros = document.querySelector('#filtros');
     var edicion = document.querySelector('#edit');
     var entrada = edicion.querySelector('#nombre');
-    var color = edicion.querySelector('#color');
     if (entrada.value.trim().length == 0) {
         entrada.value = entrada.placeholder;
     }
     var request = new XMLHttpRequest();
-    var idCuenta = filtros.querySelector('.cuenta').id.substring(1);
-    var style = getComputedStyle(color);
-    var selectedColor = rgb2hex(style.backgroundColor).substring(1);
-    request.open('PUT', 'api/cuentas/' + idCuenta + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
+    var id = filtros.querySelector('.' + concepto).id.substring(1);
+    if (concepto == 'cuenta') {
+        var color = edicion.querySelector('#color');
+        var style = getComputedStyle(color);
+        var selectedColor = rgb2hex(style.backgroundColor).substring(1);
+        request.open('PUT', 'api/cuentas/' + id + '?nombre=' + encodeURIComponent(entrada.value) + '&color=' + selectedColor);
+    } else if (concepto == 'categoria') {
+        request.open('PUT', 'api/categorias/' + id + '?nombre=' + encodeURIComponent(entrada.value));
+    }
     request.setRequestHeader('Authorization', localStorage.getItem('token'));
     request.send();
-    var cuentas = document.querySelectorAll('#c' + idCuenta);
-    cuentas.forEach(function(cuenta) {
-        var nombre = cuenta.querySelector('p,div:nth-child(2)');
-        nombre.innerText = entrada.value;
-        cuenta.setAttribute('color', selectedColor);
-        if (nombre.nodeName.toLowerCase() == 'div') {
-            nombre.style.backgroundColor = '#' + selectedColor;
-        } else {
-            nombre.style.borderColor = '#' + selectedColor;
+    var clave = '#t';
+    if (concepto == 'cuenta') {
+        clave = '#c';
+    }
+    var conceptos = document.querySelectorAll(clave + id);
+    conceptos.forEach(function(item) {
+        var nombre = item;
+        if (concepto == 'cuenta') {
+            nombre = item.querySelector('p,div:nth-child(2)');
+            item.setAttribute('color', selectedColor);
+            if (nombre.nodeName.toLowerCase() == 'div') {
+                nombre.style.backgroundColor = '#' + selectedColor;
+            } else {
+                nombre.style.borderColor = '#' + selectedColor;
+            }
         }
+        nombre.innerText = entrada.value;
     });
     showEdit(false);
 }
@@ -427,9 +555,9 @@ function updateColor(picker) {
 }
 
 function handleScroll() {
-
     var tabla = document.querySelector('#movimientos');
     var balance = document.querySelector('#balance');
+    var leyenda = document.querySelector('#leyenda');
     var loading = document.querySelector('#loading');
     var header = document.querySelector('#header');
     var fecha = document.querySelector('#fecha');
@@ -437,8 +565,10 @@ function handleScroll() {
     if (document.body.scrollTop > 0
     && (!balance || balance.classList.contains('oculto') || balance.getBoundingClientRect().bottom < 0)) {
         header.classList.add('active');
+        leyenda.classList.add('showing');
     } else {
         header.classList.remove('active');
+        leyenda.classList.remove('showing');
     }
 
     if (tabla.lastChild
