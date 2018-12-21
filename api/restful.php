@@ -21,9 +21,12 @@ class bancaAPI extends API {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
   
-      $cuentas = [];
+      $total = 0;
+      $lista = [];
       
-      $result = $con->query("SELECT C.id cuenta, logo, C.nombre nombre, C.color color, descripcion, balance FROM CUENTA C JOIN BANCO B ON C.banco = B.id");
+      $result = $con->query("SELECT C.id cuenta, logo, C.nombre nombre, C.color color, descripcion, balance
+                            FROM CUENTA C JOIN BANCO B ON C.banco = B.id
+                            ORDER BY balance - 1000000 * IF(balance < 0, balance * 1, 0) DESC");
       while ($cuenta = $result->fetch_assoc()) {
         if (!isset($cuenta['nombre'])) {
           $cuenta['nombre'] = $cuenta['descripcion'];
@@ -31,9 +34,14 @@ class bancaAPI extends API {
         unset($cuenta['descripcion']);
         if (isset($cuenta['balance'])) {
           $cuenta['balance'] = round(floatval($cuenta['balance']), 2);
+          $total += $cuenta['balance'];
         }
-        array_push($cuentas, $cuenta);
+        array_push($lista, $cuenta);
       }
+
+      $cuentas = [];
+      $cuentas['total'] = $total;
+      $cuentas['lista'] = $lista;
       
       return array('status' => 200, 'cuentas' => $cuentas);
 

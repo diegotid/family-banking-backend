@@ -117,38 +117,44 @@ function loadTable(init) {
     if (criterios) {
         balance.classList.add('oculto');
         leyenda.classList.add('showing');
+        leyenda.classList.add('filtrando');
     }
 
     if (!reload && !criterios) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) {
+                var cuentas = balance.querySelector('#cuentas');
                 var response = JSON.parse(request.responseText);
-                response.cuentas.forEach(function(item) {
+                cuentas.innerHTML = '';
+                response.cuentas.lista.forEach(function(item) {
                     var celda = document.createElement('div');
                     celda.classList.add('cuenta');
                     celda.setAttribute('color', item.color);
+                    celda.style.borderBottomColor = '#' + item.color;
                     celda.id = 'c' + item.cuenta;
                     var img = document.createElement('img');
                     img.src = 'https://www.afterbanks.com/api/icons/' + item.logo + '.min.png';
                     celda.appendChild(img);
                     var nombre = document.createElement('div');
                     nombre.innerText = item.nombre;
-                    nombre.style.backgroundColor = '#' + item.color;
                     celda.appendChild(nombre);
-                    if (item.balance) {
+                    if (item.balance != 0) {
                         var importe = document.createElement('div');
                         importe.innerText = item.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 });
                         celda.appendChild(importe);
-                        if (item.balance < 0) {
-                            celda.classList.add('bankrupt');
-                        }
-                    balance.querySelector('#cuentas').appendChild(celda);
-                    } else {
-                        balance.querySelector('#tarjetas').appendChild(celda);
+                    }
+                    if (item.balance < 0) {
+                        celda.classList.add('bankrupt');
                     }
                     celda.addEventListener('click', filtrarPorCuenta);
+                    if (cuentas.childElementCount > 3) {
+                        celda.classList.add('hidden');
+                    }
+                    cuentas.appendChild(celda);
                 });
+                balance.querySelector('.importe').innerText = response.cuentas.total.toLocaleString('es-ES', { minimumFractionDigits: 2 });
+                balance.querySelector('#hoy').innerText = (new Date()).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             } else if (request.readyState == 4 && (request.status == 401 || request.status == 0)) {
                 document.location = 'login.html';
             }
@@ -283,9 +289,8 @@ function scrollToTop() {
     var start = 0;
     var balance = document.querySelector('#balance');
     if (balance && !balance.classList.contains('oculto')) {
-        var cuenta = document.querySelector('#cabecera .cuenta');
+        var cuenta = document.querySelector('#cabecera .cuenta:first-of-type');
         start = cuenta.getBoundingClientRect().top;
-        start -= 4 * window.innerHeight / 100;
     }
     window.scroll({top: start, behaviour: 'smooth'})
     document.addEventListener('scroll', handleScroll);

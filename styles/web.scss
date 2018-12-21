@@ -1,10 +1,8 @@
 
 $mobile: 1081px;
-$indigo: rgb(14, 27, 48);
-$mgreen: rgb(80, 140, 180);
-$indigolight: rgba(14, 27, 48, 0.6);
-$mgreenlight: rgba(80, 140, 180, 0.6);
-$indigosemilight: rgba(24, 47, 83, 0.9);
+$light: rgb(163, 163, 163);
+$indigo: rgb(31, 57, 75);
+$indigothru: rgba(31, 57, 75, 0.9);
 
 @mixin shadow {
     -webkit-box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);
@@ -56,7 +54,7 @@ body {
         padding: 1vh 3vw;
         width: 100%;
         margin: 7vh 0;
-        background-color: $mgreen;
+        background-color: $indigo;
         border-radius: 1vh;
     }
 }
@@ -64,25 +62,26 @@ body {
 #header {
     left: 0;
     right: 0;
+    z-index: 20;
     margin: auto;
     padding: 2vh;
-    z-index: 20;
+    color: white;
+    position: fixed;
     font-size: 2.5vh;
     border-radius: 2vh;
-    position: fixed;
     width: calc(100vw - 7vh);
-    text-align: center;
+    background-color: $indigothru;
     white-space: nowrap;
-    background-color: $mgreen;
-    color: white;
+    text-align: center;
     @include shadow;
 
     top: -8vh;
     opacity: 0;
+    transition: 1s;
     &.active {
         top: 2vh;
         opacity: 1;
-        transition: 0.5s;
+        transition: 1s;
     }
 
     #fecha {
@@ -154,10 +153,11 @@ body {
 
     opacity: 0;
     bottom: -30vh;
+    transition: 0.5s;
     &.showing {
         opacity: 1;
         bottom: 2vh;
-        transition: 0.5s;
+        transition: 1s;
     }
     
     @media screen and (min-width: $mobile) {
@@ -168,7 +168,6 @@ body {
         left: 0;
         right: 0;
         color: grey;
-        text-align: center;
         font-size: 2vh;
     }
 
@@ -183,7 +182,6 @@ body {
 
 #filtros,
 #edit {
-
     background-color: rgba(255, 255, 255, 0.95);
 
     button {
@@ -192,29 +190,83 @@ body {
         
         &:first-of-type {
             color: white;
-            background-color: $mgreen;
+            background-color: $indigo;
         }
     }
         
-    #criterios div {
-        overflow: hidden;
-        box-sizing: border-box;
-        text-align: center;
-        margin: 2vh;
-        
-        img {
-            width: 6vh;
-            margin-bottom: 1vh;
-            border: none !important;
+    #criterios {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        align-content: center;
+        justify-content: center;
+        margin-top: 2vh;
+
+        div {
+            overflow: hidden;
+            box-sizing: border-box;
+            text-align: center;
+            margin: 2vh;
+            cursor: pointer;
+            
+            img {
+                width: 6vh;
+                margin-bottom: 1vh;
+                border: none !important;
+            }
+            
+            div, p {
+                width: auto;
+                margin: auto;
+                color: black !important;
+                background: none !important;
+                &:nth-child(2) { font-weight: 300; }
+                &:nth-child(3) { display: none; }
+            }
         }
-        
-        div, p {
-            width: auto;
-            margin: auto;
-            color: black !important;
-            background: none !important;
-            &:nth-child(2) { font-weight: 300; }
-            &:nth-child(3) { font-size: 3vh; }
+
+        .opcion {
+            display: table;
+            margin: 0.5vh 0.5vw;
+
+            .categoria {
+                display: table;
+                float: left;
+                font-size: 2.3vh;
+                font-weight: 300;
+                padding: 1vh 2vw;
+                margin: 0.5vh 1vw;
+                border: 1px solid grey;
+                border-radius: 1vh;
+                cursor: pointer;
+            }
+
+            p {
+                float: right;
+                margin: 0.5vh 0.5vw;
+                font-size: 2.3vh;
+            }
+        }
+
+        & > .cuenta.seleccionada {
+            width: 100%;
+        }
+
+        & > .categoria {
+            width: 100%;
+            margin: 1vh 0;
+            padding: 1vh 3vw;
+            border: 1px solid $indigo;
+            border-radius: 1vh;
+        }
+
+        span {
+            width: 100%;
+            margin: 1vh;
+            font-size: 2vh;
+            font-weight: 300;
+            text-align: center;
+            color: grey;
         }
     }
 }
@@ -303,7 +355,26 @@ body {
 
 #leyenda {
 
-    background-color: $mgreen;
+    background-color: $indigothru;
+
+    #defecto {
+        display: inline;
+        font-size: 2.5vh;
+        font-weight: 300;
+        vertical-align: middle;
+    }
+    #filtrando { display: none; }
+    #criterios { display: none; }
+    #filtrar { display: inline; }
+    #dismiss { display: none; }
+
+    &.filtrando {
+        #defecto { display: none; }
+        #filtrando { display: inline; }
+        #criterios { display: block; }
+        #filtrar { display: none; }
+        #dismiss { display: inline; }
+    }
 
     span {
         color: white;
@@ -335,6 +406,7 @@ body {
                 width: 4vh;
                 margin: 1vh;
                 border: none !important;
+                filter: brightness(0) invert(90%);
             }
 
             p:nth-of-type(2n+2),
@@ -366,11 +438,9 @@ body {
         bottom: 0;
         height: auto;
         min-height: 40vh;
-        padding: 3vh 2.5vw;
         position: absolute;
         overflow: hidden;
-        background-image: linear-gradient(to bottom right, $mgreenlight, $mgreen);
-        box-shadow: inset 0px 0px 24px -12px rgba(0,0,0,0.75);
+        background-color: $indigo;
         transition: 1s;
 
         &.oculto {
@@ -382,38 +452,71 @@ body {
             max-width: 440px;
         }    
 
-        #tarjetas,
+        #total {
+            height: 50%;
+            color: $light;
+
+            .importe {
+                display: table;
+                margin: 0 auto;
+                width: 100%;
+                left: 0;
+                right: 0;
+                font-size: 12vw;
+                font-weight: 400;
+                text-align: center;
+            }
+
+            p {
+                margin: 0 auto;
+                width: 100%;
+                left: 0;
+                right: 0;
+                font-size: 5vw;
+                font-weight: 300;
+                text-align: center;
+
+                &#hoy {
+                    font-size: 3.6vw;
+                    padding-top: 5.5vh;
+                    margin-bottom: 1vh;
+                }
+            }
+        }
+
         #cuentas {
             width: 100%;
             display: flex;
-            min-height: 19vh;
             flex-wrap: nowrap;
     
-            div {
+            div.cuenta {
+                height: 50%;
                 flex-grow: 1;
-                color: white;
+                color: $light;
                 overflow: hidden;
                 box-sizing: border-box;
                 width: calc(33% - 4vh);
-                min-height: 6.5vh;
-                margin: auto 1vw 5vh 1vw;
-                padding: 0 1vw;
                 text-align: center;
                 margin-top: auto;
                 margin-bottom: 1.5vh;
+                padding-top: 3vh;
                 white-space: nowrap;
-                cursor: pointer;            
+                border-bottom: 1.2vh solid;
+                cursor: pointer;     
+                
+                &.hidden {
+                    display: none;
+                }
 
                 &.bankrupt {
-                    border-radius: 2vh;
-                    border: 1px solid red;
-                    background-color: rgba(255, 0, 0, 0.15);
+                    color: red;
+                    background-color: rgba(255, 0, 0, 0.25);
                 }
 
                 img {
-                    width: 9vh;
-                    padding-top: 1vh;
+                    width: 6vh;
                     border: none !important;
+                    filter: brightness(0) invert(70%);
                 }
                 
                 div {
@@ -427,37 +530,21 @@ body {
                     
                     &:nth-child(2) {
                         width: auto;
-                        color: white;
                         font-size: 4vw;
                         font-weight: 300;
                         margin-top: 1vh;
-                        padding: 0.5vh 2.5vw;
+                        padding: 0.5vh 1vw;
                         border-radius: 1vh;
                         display: table;
                     }
 
                     &:nth-child(3) {
+                        font-size: 4.5vw;
                         margin-top: 0.3vh;
                         padding-bottom: 1vh;
-                        font-size: 6vw;
                     }
                 }
             }
-        }
-
-        #tarjetas {
-            border-radius: 1.5vh;
-            background-color: rgba(0, 0, 0, 0.1);
-
-            div {
-                padding: 1vh 1vw;
-                div { padding: 0.1vh; }
-                img { padding-top: 2vh; }
-            }
-        }
-
-        #cuentas {
-            margin-top: 1.8vh;
         }
     }
 
@@ -476,6 +563,7 @@ body {
             img {
                 width: 25vw;
                 border: none !important;
+                filter: grayscale(1);
             }
 
             div, p, span {
@@ -553,7 +641,7 @@ body {
 #movimientos {
     left: 0;
     right: 0;
-    width: 92vw;
+    width: 95vw;
     display: flex;
     flex-wrap: wrap;
     margin: 0 auto;
@@ -626,7 +714,7 @@ body {
             text-align: right;
             font-weight: 300;
             font-size: 2.7vh;
-            border-bottom: 1px solid $indigolight;
+            border-bottom: 1px solid $indigo;
             
             &.focused {
                 height: auto;
@@ -634,7 +722,7 @@ body {
             }
 
             &.positive {
-                color: $mgreen;
+                color: $indigo;
             }
         }
 
