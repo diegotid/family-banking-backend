@@ -2,6 +2,7 @@
 $mobile: 1081px;
 $light: rgb(163, 163, 163);
 $indigo: rgb(31, 57, 75);
+$indigolight: rgba(107, 129, 145, 0.5);
 $indigothru: rgba(31, 57, 75, 0.9);
 
 @mixin shadow {
@@ -210,8 +211,7 @@ body {
             cursor: pointer;
             
             img {
-                width: 6vh;
-                margin-bottom: 1vh;
+                width: 12vh;
                 border: none !important;
             }
             
@@ -260,13 +260,74 @@ body {
             border-radius: 1vh;
         }
 
-        span {
+        span.tip {
             width: 100%;
             margin: 1vh;
             font-size: 2vh;
             font-weight: 300;
             text-align: center;
             color: grey;
+        }
+
+        .fechas {
+            width: 100%;
+            margin: 0;
+            color: lightgrey;
+            font-size: 13vw;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 1vh;
+
+            .fecha {
+                display: table;
+                padding: 2vw;
+                border: 1px solid grey;
+                border-radius: 1vh;
+                min-width: 22vw;
+                min-height: 22vw;
+                background-image: linear-gradient(to bottom, rgb(253, 74, 82) 0%,rgb(253, 74, 82) 35%, rgb(235, 235, 235) 36%,rgb(235, 235, 235) 100%) !important;
+
+                &:first-of-type { float: left; }
+                &:last-of-type { float: right; }
+
+                span {
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto;
+                    display: table;
+                    color: $indigo;
+                    font-weight: 300;
+                    
+                    &:nth-of-type(1) {
+                        float: left;
+                        font-size: 5vw;
+                        margin: -6% auto;
+                        color: white;
+                    }
+                    &:nth-of-type(2) {
+                        float: right;
+                        font-size: 4vw;
+                        color: white;
+                    }
+                    &:nth-of-type(3) {
+                        font-size: 11vw;
+                        font-weight: 400;
+                        margin-top: 32%;
+                        margin-bottom: -30%;
+                        clear: both;
+
+                        &.hoy {
+                            font-size: 8vw;
+                            margin-top: 42%;
+                        }
+                    }
+                }
+
+                input {
+                    position: fixed;
+                    top: 101vh;
+                }
+            }
         }
     }
 }
@@ -382,14 +443,14 @@ body {
 
     #criterios {
         margin-top: 2vh;
-
+        font-size: 2.5vh;
+        font-weight: 300;
+        
         div.categoria,
         div.cuenta > p,
         div.cuenta > div {
             display: table;
             float: left;
-            font-size: 2.5vh;
-            font-weight: 300;
             margin: 1vh;
             padding: 0.5vh 2.5vw;
             color: white !important;
@@ -414,6 +475,44 @@ body {
                 display: none;
             }
         }
+
+        .fechas {
+            color: #00000000;
+            display: table;
+            margin: 1vh;
+            padding: 0.5vh 2.5vw;
+            border: 1px solid white !important;
+            border-radius: 1vh;
+            font-size: 0; // Para ocultar los ......
+
+            div {
+                display: table;
+                float: left;
+                color: white !important;
+                font-size: 2.5vh !important;
+    
+                &:nth-of-type(1)::before {
+                    content: 'Desde';
+                }
+
+                &:nth-of-type(2) {
+                    margin-left: 2vw;
+
+                    &::before {
+                        content: 'hasta';
+                    }
+                }
+
+                span {
+                    margin-left: 1vw;
+                    font-size: 2.5vh !important;
+                    font-weight: 400;
+                }
+            }
+            input {
+                display: none;
+            }
+        }
     }
 
     button {
@@ -423,6 +522,11 @@ body {
         background: none;
         padding: 2vh 1.5vh;
         vertical-align: middle;
+        
+        &#filtrar {
+            background-color: $indigolight;
+            padding: 2vh 5vw;
+        }
     }
 }
 

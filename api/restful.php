@@ -127,6 +127,9 @@ class bancaAPI extends API {
       if (isset($filtros->categoria)) {
         $query .= " AND T.id = " . $filtros->categoria;
       }
+      if (isset($filtros->fecha)) {
+        $query .= " AND M.fecha >= '" . $filtros->fecha->desde . "' AND M.fecha <= '" . $filtros->fecha->hasta . "'";
+      }
       $query .= " ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
       $result = $con->query($query);

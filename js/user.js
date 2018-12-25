@@ -39,7 +39,7 @@ function setup() {
     dismissFilter();
 
     var filtros = document.querySelector('#filtros');
-    var confirmButton = filtros.querySelector('button:first-of-type');
+    var confirmButton = filtros.querySelector('button#save');
     confirmButton.addEventListener('click', function() {
         loadTable(true);
         hideFilter();
@@ -95,10 +95,15 @@ function showFilter() {
     buttonCuenta.addEventListener('click', showCuentasFilter);
     filtros.insertBefore(buttonCuenta, cancelButton);
     var buttonCategoria = document.createElement('button');
-    buttonCategoria.innerText = 'Filtrar por categoría';
+    buttonCategoria.innerHTML = 'Filtrar por categor&iacute;a';
     buttonCategoria.id = 'categoria';
     buttonCategoria.addEventListener('click', showCategoriasFilter);
     filtros.insertBefore(buttonCategoria, cancelButton);
+    var buttonFecha = document.createElement('button');
+    buttonFecha.innerHTML = 'Filtrar por fechas';
+    buttonFecha.id = 'fecha';
+    buttonFecha.addEventListener('click', showFechasFilter);
+    filtros.insertBefore(buttonFecha, cancelButton);
 }
 
 function showCuentasFilter() {
@@ -110,6 +115,128 @@ function showCuentasFilter() {
         criterios.appendChild(opcion);
     });
     mostrarBotonesFiltro(false);
+}
+
+function showCategoriasFilter() {
+    var criterios = document.querySelector('#filtros #criterios');
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            var response = JSON.parse(request.responseText);
+            response.categorias.lista.forEach(function(categoria) {
+                var opcion = document.createElement('div');
+                opcion.classList.add('opcion');
+                var seleccion = document.createElement('div');
+                seleccion.id = 't' + categoria.id;
+                seleccion.innerText = categoria.nombre;
+                seleccion.classList.add('categoria');
+                seleccion.classList.add('test');
+                seleccion.addEventListener('click', function(e) {
+                    var filtros = document.querySelector('#filtros');
+                    filtros.querySelector('button#save').style.display = 'inline-block';
+                    var opciones = criterios.querySelectorAll('.opcion');
+                    opciones.forEach(function(item) { item.remove(); });
+                    filtrarPorCategoria(e);
+                });
+                opcion.appendChild(seleccion);
+                var numero = document.createElement('p');
+                numero.innerText = categoria.numero;
+                opcion.appendChild(numero);
+                criterios.appendChild(opcion);
+            });
+            var tip = document.createElement('span');
+            tip.className = 'tip';
+            if (response.categorias.lista.length > 0) {
+                tip.innerHTML += '<span>(n&uacute;mero de movimientos en el &uacute;ltimo mes)</span>';
+            } else {
+                tip.innerHTML += '<span>No hay movimientos en el &uacute;ltimo mes</span>';
+            }
+            criterios.appendChild(tip);
+        }
+    };
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
+    request.open('GET', 'api/categorias?q=' + encodeURIComponent(JSON.stringify(filtros)));
+    request.setRequestHeader('Authorization', localStorage.getItem('token'));
+    request.send();
+    mostrarBotonesFiltro(false);
+}
+
+function showFechasFilter() {
+    var criterios = document.querySelector('#filtros #criterios');
+    var fechas = criterios.querySelector('.fechas');
+    if (fechas) fechas.remove();
+    fechas = document.createElement('div');
+    fechas.classList.add('fechas');
+    fechas.innerText = '.........';
+    var hoy = new Date();
+    var antes = new Date();
+    antes.setMonth(antes.getMonth() - 1);
+    fechas.appendChild(hojaCalendario(antes));
+    fechas.appendChild(hojaCalendario(hoy));
+    var categoria = criterios.querySelector('.categoria');
+    if (categoria) {
+        criterios.insertBefore(fechas, categoria);
+    } else {
+        criterios.appendChild(fechas);
+    }
+    mostrarBotonesFiltro(false);    
+}
+
+function hojaCalendario(fecha) {
+    var hoja = document.createElement('div');
+    hoja.classList.add('fecha');
+    var mes = document.createElement('span');
+    mes.innerText = fecha.toLocaleString('es-ES', { month: 'short'});
+    hoja.appendChild(mes);
+    var anyo = document.createElement('span');
+    anyo.innerText = fecha.toLocaleString('es-ES', { year: 'numeric'});
+    hoja.appendChild(anyo);
+    var dia = document.createElement('span');
+    if (fecha.toISOString().slice(0, 10) == new Date().toISOString().slice(0, 10)) {
+        dia.innerText = 'hoy';
+        dia.classList.add('hoy');
+    } else {
+        dia.innerText = fecha.toLocaleString('es-ES', { day: 'numeric'});
+        dia.classList.remove('hoy');
+    }
+    hoja.appendChild(dia);
+    var picker = document.createElement('input');
+    picker.type = 'date';
+    picker.value = fecha.toISOString().slice(0, 10);
+    picker.max = new Date().toISOString().slice(0, 10);
+    hoja.appendChild(picker);
+    hoja.addEventListener('click', function(e) {
+        picker.focus();
+    });
+    picker.addEventListener('change', cambiarFecha);
+    return hoja;
+}
+
+function cambiarFecha(e) {
+    var hoja = e.target.parentNode;
+    var fecha = new Date(e.target.value);
+    var desde = new Date(hoja.parentNode.querySelector('.fecha:first-of-type input').value);
+    var hasta = new Date(hoja.parentNode.querySelector('.fecha:last-of-type input').value);
+    var dia = hoja.querySelector('span:nth-of-type(3)');
+    if (desde > hasta) {
+        alert('La fecha de inicio no puede ser posterior a la fecha de fin');
+        e.target.value = new Date().toISOString().slice(0, 10);
+        return;
+    } else if (fecha > new Date()) {
+        alert('No te preocupes que aún no adivino movimientos futuros');
+        e.target.value = new Date().toISOString().slice(0, 10);
+        dia.innerText = 'hoy';
+        dia.classList.add('hoy');
+    } else if (fecha.toISOString().slice(0, 10) == new Date().toISOString().slice(0, 10)) {
+        dia.innerText = 'hoy';
+        dia.classList.add('hoy');
+    } else {
+        dia.innerText = fecha.toLocaleString('es-ES', { day: 'numeric'});
+        dia.classList.remove('hoy');
+    }
+    hoja.querySelector('span:nth-of-type(1)').innerText = fecha.toLocaleString('es-ES', { month: 'short'});
+    hoja.querySelector('span:nth-of-type(2)').innerText = fecha.toLocaleString('es-ES', { year: 'numeric'});
+    filtrarPorFechas();
 }
 
 function hideFilter() {
@@ -142,49 +269,6 @@ function dismissFilter() {
     loadTable(true);
 }
 
-function showCategoriasFilter() {
-    var criterios = document.querySelector('#filtros #criterios');
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200) {
-            var response = JSON.parse(request.responseText);
-            response.categorias.lista.forEach(function(categoria) {
-                var opcion = document.createElement('div');
-                opcion.classList.add('opcion');
-                var seleccion = document.createElement('div');
-                seleccion.id = 't' + categoria.id;
-                seleccion.innerText = categoria.nombre;
-                seleccion.classList.add('categoria');
-                seleccion.classList.add('test');
-                seleccion.addEventListener('click', function(e) {
-                    var filtros = document.querySelector('#filtros');
-                    filtros.querySelector('button#save').style.display = 'inline-block';
-                    var opciones = criterios.querySelectorAll('.opcion');
-                    opciones.forEach(function(item) { item.remove(); });
-                    filtrarPorCategoria(e);
-                });
-                opcion.appendChild(seleccion);
-                var numero = document.createElement('p');
-                numero.innerText = categoria.numero;
-                opcion.appendChild(numero);
-                criterios.appendChild(opcion);
-            });
-            var tip = document.createElement('span');
-            if (response.categorias.lista.length > 0) {
-                tip.innerHTML += '<span>(n&uacute;mero de movimientos en el &uacute;ltimo mes)</span>';
-            } else {
-                tip.innerHTML += '<span>No hay movimientos en el &uacute;ltimo mes</span>';
-            }
-            criterios.appendChild(tip);
-        }
-    };
-    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
-    request.open('GET', 'api/categorias?q=' + encodeURIComponent(JSON.stringify(filtros)));
-    request.setRequestHeader('Authorization', localStorage.getItem('token'));
-    request.send();
-    mostrarBotonesFiltro(false);
-}
-
 function filtrarPorCategoria(e) {
     var categoria = e.target;
     var filtros = sessionStorage.getItem('filtros');
@@ -203,7 +287,7 @@ function filtrarPorCategoria(e) {
     var seleccion = categoria.cloneNode(true);
     seleccion.style.opacity = 1;
     filtros.querySelector('#criterios').appendChild(seleccion);
-    var tip = filtros.querySelector('#criterios span');
+    var tip = filtros.querySelector('#criterios span.tip');
     if (tip) tip.remove();
     actualizarBotonesFiltro();
     var criterio = categoria.cloneNode(true);
@@ -235,11 +319,41 @@ function filtrarPorCuenta(e) {
     criterios.forEach(function(criterio) {
         criterio.remove();
     });
-    filtros.querySelector('#criterios').appendChild(seleccion);
+    criterios = filtros.querySelector('#criterios');
+    criterios.insertBefore(seleccion, criterios.firstChild);
     var criterio = cuenta.cloneNode(true);
     criterio.style.opacity = 1;
     criterio.setAttribute('color', cuenta.getAttribute('color'));
     var leyenda = document.querySelector('#leyenda');
+    leyenda.querySelector('#criterios').appendChild(criterio);
+    actualizarBotonesFiltro();
+}
+
+function filtrarPorFechas() {
+    var fecha = {
+        'desde': document.querySelector('#criterios .fechas div:nth-child(1) input[type=date]').value,
+        'hasta': document.querySelector('#criterios .fechas div:nth-child(2) input[type=date]').value
+    };
+    var filtros = sessionStorage.getItem('filtros');
+    if (filtros) {
+        filtros = JSON.parse(filtros);
+        filtros.fecha = fecha;
+    } else {
+        filtros = {'fecha': fecha};
+    }
+    sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    var criterio = document.querySelector('#criterios .fechas').cloneNode(true);
+    var fechas = criterio.querySelectorAll('.fecha');
+    fechas.forEach(function(fecha) {
+        fecha.insertBefore(fecha.querySelector('span:nth-of-type(3)'), fecha.firstChild);
+        if (fecha.firstChild.classList.contains('hoy')) {
+            for (var i = 0; i < 2; i++) {
+                fecha.querySelector('span:last-of-type').remove();
+            }
+        }
+    });
+    var ant = leyenda.querySelector('#criterios .fechas');
+    if (ant) ant.remove();
     leyenda.querySelector('#criterios').appendChild(criterio);
     actualizarBotonesFiltro();
 }
@@ -260,7 +374,8 @@ function actualizarBotonesFiltro() {
         if (boton) boton.remove();
     });
     mostrarBotonesFiltro(true);
-    if (criterios.length == 1) {
+    if (criterios.length == 1
+    && (criterios[0] == 'cuenta' || criterios[0] == 'categoria')) {
         var buttonEdit = document.createElement('button');
         buttonEdit.id = 'edit_button';
         buttonEdit.innerText = 'Cambiar nombre de la ' + criterios[0];
@@ -549,9 +664,9 @@ function saveEdit() {
     showEdit(false);
 }
 
-function updateColor(picker) {
+function updateColor(desde) {
     var color = document.querySelector('#edit').querySelector('#color');
-    color.value = picker.toHEXString();
+    color.value = desde.toHEXString();
 }
 
 function handleScroll() {
@@ -563,6 +678,7 @@ function handleScroll() {
     var fecha = document.querySelector('#fecha');
 
     if (document.body.scrollTop > 0
+    && !document.querySelector('#filtros').classList.contains('showing')
     && (!balance || balance.classList.contains('oculto') || balance.getBoundingClientRect().bottom < 0)) {
         header.classList.add('active');
         leyenda.classList.add('showing');
