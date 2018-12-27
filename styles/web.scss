@@ -178,6 +178,10 @@ body {
         border-radius: 1.2vh;
         margin-top: 1.5vh;
         border: none;
+
+        &.hidden {
+            display: none;
+        }
     }
 }
 
@@ -329,6 +333,32 @@ body {
                 }
             }
         }
+
+        .importe {
+            width: 100%;
+            margin: 0;
+
+            input {
+                font-size: 5vh;
+                padding: 1.8vh 2vh;
+                border: 1px solid lightgrey;
+                border-radius: 1.2vh;
+                text-align: right;
+                width: 45%;
+
+                &.entre {
+                    float: left;
+                }
+
+                &.y {
+                    float: right;
+                }
+            }
+
+            span {
+                display: none;
+            }
+        }
     }
 }
 
@@ -419,10 +449,10 @@ body {
     background-color: $indigothru;
 
     #defecto {
-        display: inline;
+        width: 60vw;
+        float: left;
         font-size: 2.5vh;
         font-weight: 300;
-        vertical-align: middle;
     }
     #filtrando { display: none; }
     #criterios { display: none; }
@@ -509,6 +539,22 @@ body {
                     font-weight: 400;
                 }
             }
+            input {
+                display: none;
+            }
+        }
+
+        .importe {
+            margin: 1vh 0;
+
+            span {
+                margin: 1vh;
+                font-size: 2.5vh;
+                padding: 0.5vh 2.5vw;
+                border: 1px solid white !important;
+                border-radius: 1vh;
+            }
+
             input {
                 display: none;
             }

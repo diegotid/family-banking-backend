@@ -27,15 +27,9 @@ function setup() {
         scrollToTop();
         header.classList.remove('active');
     });
-    document.querySelector('#filtros button:last-of-type').addEventListener('click', function() {
-        dismissFilter();
-    });
-    document.querySelector('#leyenda button#dismiss').addEventListener('click', function() {
-        dismissFilter();
-    });
-    document.querySelector('#leyenda button#filtrar').addEventListener('click', function() {
-        showFilter();
-    });
+    document.querySelector('#filtros button#dismiss').addEventListener('click', dismissFilter);
+    document.querySelector('#leyenda button#dismiss').addEventListener('click', dismissFilter);
+    document.querySelector('#leyenda button#filtrar').addEventListener('click', showFilter);
     dismissFilter();
 
     var filtros = document.querySelector('#filtros');
@@ -87,7 +81,7 @@ function showFilter() {
     document.querySelector('#oscuro').classList.add('showing');
     document.body.classList.add('freeze');
     document.body.addEventListener('touchmove', freeze, { passive: false });
-    filtros.querySelector('button#save').style.display = 'none';
+    filtros.querySelector('button#save').classList.add('hidden');
     var cancelButton = filtros.querySelector('button:last-of-type');
     var buttonCuenta = document.createElement('button');
     buttonCuenta.innerText = 'Filtrar por cuenta';
@@ -104,6 +98,11 @@ function showFilter() {
     buttonFecha.id = 'fecha';
     buttonFecha.addEventListener('click', showFechasFilter);
     filtros.insertBefore(buttonFecha, cancelButton);
+    var buttonImporte = document.createElement('button');
+    buttonImporte.innerHTML = 'Filtrar por importe';
+    buttonImporte.id = 'importe';
+    buttonImporte.addEventListener('click', showImporteFilter);
+    filtros.insertBefore(buttonImporte, cancelButton);
 }
 
 function showCuentasFilter() {
@@ -133,7 +132,7 @@ function showCategoriasFilter() {
                 seleccion.classList.add('test');
                 seleccion.addEventListener('click', function(e) {
                     var filtros = document.querySelector('#filtros');
-                    filtros.querySelector('button#save').style.display = 'inline-block';
+                    filtros.querySelector('button#save').classList.remove('hidden');
                     var opciones = criterios.querySelectorAll('.opcion');
                     opciones.forEach(function(item) { item.remove(); });
                     filtrarPorCategoria(e);
@@ -180,6 +179,38 @@ function showFechasFilter() {
         criterios.appendChild(fechas);
     }
     mostrarBotonesFiltro(false);    
+}
+
+function showImporteFilter() {
+    var criterios = document.querySelector('#filtros #criterios');
+    var importe = criterios.querySelector('.importe');
+    if (importe) importe.remove();
+    importe = document.createElement('div');
+    importe.classList.add('importe');
+    var entre = document.createElement('input');
+    entre.placeholder = 'Entre';
+    entre.className = 'entre';
+    entre.type = 'text';
+    entre.addEventListener('change', cambiarImporte);
+    importe.appendChild(entre);
+    var entreTip = document.createElement('span');
+    importe.insertBefore(entreTip, entre);
+    var y = document.createElement('input');
+    y.placeholder = '... y';
+    y.className = 'y';
+    y.type = 'text';
+    y.addEventListener('change', cambiarImporte);
+    importe.appendChild(y);
+    var yTip = document.createElement('span');
+    importe.insertBefore(yTip, y);
+    var categoria = criterios.querySelector('.categoria');
+    if (categoria) {
+        criterios.insertBefore(importe, categoria);
+    } else {
+        criterios.appendChild(importe);
+    }
+    mostrarBotonesFiltro(false);
+    entre.focus();
 }
 
 function hojaCalendario(fecha) {
@@ -237,6 +268,16 @@ function cambiarFecha(e) {
     hoja.querySelector('span:nth-of-type(1)').innerText = fecha.toLocaleString('es-ES', { month: 'short'});
     hoja.querySelector('span:nth-of-type(2)').innerText = fecha.toLocaleString('es-ES', { year: 'numeric'});
     filtrarPorFechas();
+}
+
+function cambiarImporte(e) {
+    var importe = e.target;
+    if (isNaN(importe.value)) {
+        alert('Por favor, centrate!');
+        importe.value = '';
+        return;
+    }
+    filtrarPorImporte();
 }
 
 function hideFilter() {
@@ -358,23 +399,73 @@ function filtrarPorFechas() {
     actualizarBotonesFiltro();
 }
 
+function filtrarPorImporte() {
+    var importe = {};
+    var entre = document.querySelector('#criterios .importe input:nth-of-type(1)').value;
+    var entreTip = document.querySelector('#criterios .importe span:nth-of-type(1)');
+    if (entre.length > 0) {
+        importe.entre = entre;
+        entreTip.innerHTML = 'm&aacute;s de ' + entre.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    }
+    var y = document.querySelector('#criterios .importe input:nth-of-type(2)').value;
+    var yTip = document.querySelector('#criterios .importe span:nth-of-type(2)');
+    if (y.length > 0) {
+        importe.y = y;
+        yTip.innerHTML = 'menos de ' + y.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    }
+    var filtros = sessionStorage.getItem('filtros');
+    if (filtros) {
+        filtros = JSON.parse(filtros);
+        filtros.importe = importe;
+    } else {
+        filtros = {'importe': importe};
+    }
+    sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    var criterio = document.querySelector('#criterios .importe').cloneNode(true);
+    var importes = criterio.querySelectorAll('input');
+    importes.forEach(function(entrada) {
+        entrada.readOnly = true;
+        entrada.previousSibling.style.display = (entrada.value == 0) ? 'none' : 'inline';
+    });
+    var ant = leyenda.querySelector('#criterios .importe');
+    if (ant) ant.remove();
+    leyenda.querySelector('#criterios').appendChild(criterio);
+    actualizarBotonesFiltro();
+}
+
 function mostrarBotonesFiltro(mostrar) {
     var botones = document.querySelectorAll('#filtros button:not(#save):not(#dismiss)');
     botones.forEach(function(boton) {
-        boton.disabled = !mostrar;
+        if (mostrar) {
+            boton.classList.remove('hidden');
+        } else {
+            boton.classList.add('hidden');
+        }
     });
+    if (mostrar) {
+        document.querySelector('#filtros button#dismiss').addEventListener('click', dismissFilter);
+        document.querySelector('#filtros button#dismiss').removeEventListener('click', actualizarBotonesFiltro);
+    } else {
+        document.querySelector('#filtros button#dismiss').removeEventListener('click', dismissFilter);
+        document.querySelector('#filtros button#dismiss').addEventListener('click', actualizarBotonesFiltro);
+    }
 }
 
 function actualizarBotonesFiltro() {
-    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
-    var formulario = document.querySelector('#filtros');
-    var criterios = Object.keys(filtros);
-    criterios.forEach(function(key, index) {
-        var boton = formulario.querySelector('button#' + key);
-        if (boton) boton.remove();
-    });
     mostrarBotonesFiltro(true);
-    if (criterios.length == 1
+    var formulario = document.querySelector('#filtros');
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
+    if (filtros) {
+        var criterios = Object.keys(filtros);
+        criterios.forEach(function(key, index) {
+            var boton = formulario.querySelector('button#' + key);
+            if (boton) boton.remove();
+        });
+        formulario.querySelector('button#save').classList.remove('hidden');
+    } else {
+        formulario.querySelector('button#save').classList.add('hidden');
+    }
+    if (criterios && criterios.length == 1
     && (criterios[0] == 'cuenta' || criterios[0] == 'categoria')) {
         var buttonEdit = document.createElement('button');
         buttonEdit.id = 'edit_button';
@@ -382,13 +473,33 @@ function actualizarBotonesFiltro() {
         buttonEdit.addEventListener('click', function(e) {
             showEdit(true);
         });
-        var cancelButton = formulario.querySelector('button:last-of-type');
+        var cancelButton = formulario.querySelector('button#dismiss');
         formulario.insertBefore(buttonEdit, cancelButton);
     } else {
         var buttonEdit = formulario.querySelector('button#edit_button');
         if (buttonEdit) buttonEdit.remove();
     }
-    formulario.querySelector('button#save').style.display = 'inline-block';
+    var criterios = document.querySelector('#filtros #criterios');
+    if (!filtros || !filtros.cuenta) {
+        var cuentas = criterios.querySelectorAll('.cuenta');
+        cuentas.forEach(function(cuenta) {
+            cuenta.remove();
+        });
+    }
+    if (!filtros || !filtros.categoria) {
+        var categorias = criterios.querySelectorAll('.categoria');
+        categorias.forEach(function(categoria) {
+            categoria.remove();
+        });
+    }
+    if (!filtros || !filtros.fechas) {
+        var fechas = criterios.querySelector('.fechas');
+        if (fechas) fechas.remove();
+    }
+    if (!filtros || !filtros.importe) {
+        var importe = criterios.querySelector('.importe');
+        if (importe) importe.remove();
+    }
     formulario.classList.add('showing');
     var leyenda = document.querySelector('#leyenda');
     leyenda.classList.remove('showing');
@@ -472,13 +583,22 @@ function loadTable(init) {
         }
     }
 
-    if (init) tabla.innerHTML = '';
-
+    
     var requestm = new XMLHttpRequest();
     requestm.onreadystatechange = function() {
         if (requestm.readyState == 4 && requestm.status == 200) {
             var primero = true;
             var response = JSON.parse(requestm.responseText);
+            
+            if (init && response.movimientos.lista.length == 0) {
+                alert('No hay movimientos según los criterios seleccionados');
+                sessionStorage.removeItem('filtros');
+                dismissFilter();
+                return;
+            } else if (init) {
+                tabla.innerHTML = '';
+            }
+
             response.movimientos.lista.forEach(function(item) {
                 campos.forEach(function(campo) {
                     var celda = document.createElement('div');
