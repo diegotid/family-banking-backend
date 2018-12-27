@@ -78,14 +78,17 @@ class bancaAPI extends API {
       $lista = [];
       $filtros = json_decode(urldecode($this->request['q']));
       
-      $condicion = "M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
-      if (isset($filtros->cuenta)) {
-        $condicion .= " AND M.cuenta = " . $filtros->cuenta;
+      $condiciones = $this->condiciones($filtros);
+      if ($condiciones == 'TRUE') {
+        $condiciones = "M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
       }
-      $query = "SELECT C.id id, C.nombre nombre, COUNT(*) numero
-                FROM CATEGORIA C JOIN MOVIMIENTO M ON M.categoria = C.id
-                WHERE " . $condicion . "
-                GROUP BY C.id ORDER BY numero DESC LIMIT 10";
+      $query = "SELECT T.id id, T.nombre nombre, COUNT(*) numero
+                FROM MOVIMIENTO M
+                JOIN CUENTA C ON M.cuenta = C.id
+                JOIN BANCO B ON C.banco = B.id
+                JOIN CATEGORIA T ON categoria = T.id
+                WHERE " . $condiciones . "
+                GROUP BY T.id ORDER BY numero DESC LIMIT 10";
 
       $result = $con->query($query);
       while ($categoria = $result->fetch_assoc()) {
@@ -120,17 +123,8 @@ class bancaAPI extends API {
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
                 JOIN CATEGORIA T ON categoria = T.id
-                WHERE TRUE";
-      if (isset($filtros->cuenta)) {
-        $query .= " AND C.id = " . $filtros->cuenta;
-      }
-      if (isset($filtros->categoria)) {
-        $query .= " AND T.id = " . $filtros->categoria;
-      }
-      if (isset($filtros->fecha)) {
-        $query .= " AND M.fecha >= '" . $filtros->fecha->desde . "' AND M.fecha <= '" . $filtros->fecha->hasta . "'";
-      }
-      $query .= " ORDER BY fecha DESC LIMIT " . $offset . ", 20";
+                WHERE " . $this->condiciones($filtros) . "
+                ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
       $result = $con->query($query);
       while ($movimiento = $result->fetch_assoc()) {
@@ -179,6 +173,31 @@ class bancaAPI extends API {
 
       return array('status' => 200, 'movimientos' => $resultado);
     }
+  }
+
+  protected function condiciones($filtros) {
+
+    $query = "TRUE";
+
+    if (isset($filtros->cuenta)) {
+      $query .= " AND C.id = " . $filtros->cuenta;
+    }
+    if (isset($filtros->categoria)) {
+      $query .= " AND T.id = " . $filtros->categoria;
+    }
+    if (isset($filtros->fecha)) {
+      $query .= " AND M.fecha >= '" . $filtros->fecha->desde . "' AND M.fecha <= '" . $filtros->fecha->hasta . "'";
+    }
+    if (isset($filtros->importe)) {
+      if (isset($filtros->importe->entre)) {
+        $query .= " AND ABS(M.importe) >= ABS(" . $filtros->importe->entre . ") ";
+      }
+      if (isset($filtros->importe->y)) {
+        $query .= " AND ABS(M.importe) <= ABS(" . $filtros->importe->y . ")";
+      }
+    }
+
+    return $query;
   }
 }
 
