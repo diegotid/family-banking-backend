@@ -162,6 +162,7 @@ function showCategoriasFilter() {
                 }
             }
             var tip = document.createElement('span');
+            tip.className = 'tip';
             var primera = criterios.querySelector('div.categoria');
             var cuando = (filtros && filtros.fecha) ? 'en las fechas seleccionadas' : 'en el &uacute;ltimo mes';
             if (primera) {
@@ -227,6 +228,7 @@ function showImporteFilter() {
     entre.addEventListener('change', cambiarImporte);
     importe.appendChild(entre);
     var entreTip = document.createElement('span');
+    entreTip.className = 'tip';
     importe.insertBefore(entreTip, entre);
     var y = document.createElement('input');
     y.placeholder = '... y';
@@ -235,6 +237,7 @@ function showImporteFilter() {
     y.addEventListener('change', cambiarImporte);
     importe.appendChild(y);
     var yTip = document.createElement('span');
+    yTip.className = 'tip';
     importe.insertBefore(yTip, y);
     criterios.appendChild(importe);
     mostrarBotonesFiltro(false);
@@ -358,12 +361,10 @@ function filtrarPorCategoria(e) {
     }
     sessionStorage.setItem('filtros', JSON.stringify(filtros));
     var criterios = document.querySelector('#filtros #criterios');
-    var span = criterios.querySelector('span');
-    if (span) span.remove();
     criterios.querySelectorAll('.categoria').forEach(function(criterio) {
         criterio.remove();
     });
-    var tip = criterios.querySelector('span');
+    var tip = criterios.querySelector('span.tip');
     if (tip) tip.remove();
     var seleccion = document.createElement('div');
     seleccion.id = 't' + seleccionada;
@@ -540,7 +541,7 @@ function actualizarBotonesFiltro() {
         criterios.querySelectorAll('.categoria').forEach(function(criterio) {
             criterio.remove();
         });
-        var tip = criterios.querySelector('span');
+        var tip = criterios.querySelector('span.tip');
         if (tip) tip.remove();
     }
     if (!filtros || !filtros.fecha) {
