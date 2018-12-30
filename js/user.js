@@ -493,7 +493,7 @@ function filtrarPorImporte() {
 }
 
 function mostrarBotonesFiltro(mostrar) {
-    var botones = document.querySelectorAll('#filtros button:not(#save):not(#dismiss)');
+    var botones = document.querySelectorAll('#filtros button:not(#dismiss)');
     botones.forEach(function(boton) {
         if (mostrar) {
             boton.classList.remove('hidden');
