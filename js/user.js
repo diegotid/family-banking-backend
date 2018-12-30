@@ -163,7 +163,7 @@ function showCategoriasFilter() {
             }
             var tip = document.createElement('span');
             var primera = criterios.querySelector('div.categoria');
-            var cuando = filtros.fecha ? 'en las fechas seleccionadas' : 'en el &uacute;ltimo mes';
+            var cuando = (filtros && filtros.fecha) ? 'en las fechas seleccionadas' : 'en el &uacute;ltimo mes';
             if (primera) {
                 tip.innerHTML = 'de una de las siguientes categor&iacute;as con movimientos en ' + cuando;
             } else {
@@ -189,7 +189,7 @@ function addCategoriasSelect() {
     opcion.innerText = 'Otras...';
     select.appendChild(opcion);
     var group = document.createElement('optgroup');
-    var cuando = filtros.fecha ? 'las fechas seleccionadas' : 'el &uacute;ltimo mes';
+    var cuando = (filtros && filtros.fecha) ? 'las fechas seleccionadas' : 'el &uacute;ltimo mes';
     group.label = 'Con movimientos en ' + cuando;
     select.appendChild(group);
     group = document.createElement('optgroup');
