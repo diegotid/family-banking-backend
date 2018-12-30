@@ -712,7 +712,7 @@ function loadTable(init) {
                 var total = response.movimientos.resumen.total;
                 if (!total || isNaN(total)) total = '0';
                 importe.innerText = parseFloat(total).toLocaleString('es-ES', { minimumFractionDigits: 2 });
-                if (response.movimientos.resumen.total > 0) {
+                if (total > 0) {
                     importe.innerText = '+ ' + importe.innerText;
                     importe.classList.add('positive');
                 }
@@ -721,13 +721,19 @@ function loadTable(init) {
                 saldo.appendChild(document.querySelector('#criterios .categoria').cloneNode(true));
                 var entre = document.createElement('span');
                 if (criterios.fecha) {
-                    var desde = new Date(response.movimientos.resumen.desde);
-                    var hasta = new Date(response.movimientos.resumen.hasta);
-                    var diffm = Math.ceil(Math.abs(hasta.getTime() - desde.getTime()) / (1000 * 3600 * 24 * 365/12));
+                    var desde = new Date(criterios.fecha.desde);
+                    var hasta = new Date(criterios.fecha.hasta);
+                    var diffm = Math.abs(hasta.getTime() - desde.getTime()) / (1000 * 3600 * 24 * 365/12);
                     if (diffm > 1) {
-                        entre.innerHTML = 'los &uacute;ltimos ' + diffm.toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' meses';
+                        var media = Math.abs(total / diffm);
+                        entre.innerHTML = 'en ' + diffm.toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' meses';
+                        if (total < 0) {
+                            entre.innerHTML += ' (' + media.toLocaleString('es-ES', { maximumFractionDigits: 2 }) + ' al mes)';
+                        }
+                    } else if (diffm > 0.85) {
+                        entre.innerHTML = 'en 1 mes';
                     } else {
-                        entre.innerHTML = 'el &uacute;ltimo mes';
+                        entre.innerHTML = 'en menos de 1 mes';
                     }
                 } else {
                     entre.innerHTML = 'el &uacute;ltimo mes';
