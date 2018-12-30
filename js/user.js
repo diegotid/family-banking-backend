@@ -363,6 +363,8 @@ function filtrarPorCategoria(e) {
     criterios.querySelectorAll('.categoria').forEach(function(criterio) {
         criterio.remove();
     });
+    var tip = criterios.querySelector('span');
+    if (tip) tip.remove();
     var seleccion = document.createElement('div');
     seleccion.id = 't' + seleccionada;
     seleccion.className = 'categoria seleccionada';
@@ -530,14 +532,16 @@ function actualizarBotonesFiltro() {
     }
     var criterios = document.querySelector('#filtros #criterios');
     if (!filtros || !filtros.cuenta) {
-        var cuentas = criterios.querySelectorAll('.cuenta');
-        cuentas.forEach(function(cuenta) {
+        criterios.querySelectorAll('.cuenta').forEach(function(cuenta) {
             cuenta.remove();
         });
     }
     if (!filtros || !filtros.categoria) {
-        var categoria = criterios.querySelector('.categoria');
-        if (categoria) categoria.remove();
+        criterios.querySelectorAll('.categoria').forEach(function(criterio) {
+            criterio.remove();
+        });
+        var tip = criterios.querySelector('span');
+        if (tip) tip.remove();
     }
     if (!filtros || !filtros.fecha) {
         var fechas = criterios.querySelector('.fechas');
