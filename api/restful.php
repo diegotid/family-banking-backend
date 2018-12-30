@@ -95,6 +95,16 @@ class bancaAPI extends API {
         array_push($lista, $categoria);
       }
 
+      $result = $con->query("SELECT * FROM CATEGORIA WHERE id NOT IN
+                            (SELECT categoria FROM MOVIMIENTO M
+                            JOIN CUENTA C ON M.cuenta = C.id
+                            JOIN CATEGORIA T ON M.categoria = T.id
+                            WHERE " . $condiciones . ")");
+      while ($categoria = $result->fetch_assoc()) {
+        $categoria['numero'] = 0;
+        array_push($lista, $categoria);
+      }
+
       $categorias = [];
       $categorias['lista'] = $lista;
       
@@ -162,8 +172,8 @@ class bancaAPI extends API {
         if (isset($filtros->cuenta)) {
           $query .= " AND cuenta = " . $filtros->cuenta;
         }
-        if (isset($filtros->fechas)) {
-          $query .= "";
+        if (isset($filtros->fecha)) {
+          $query .= " AND fecha >= '" . $filtros->fecha->desde . "' AND fecha <= '" . $filtros->fecha->hasta . "'";
         } else {
           $query .= " AND fecha BETWEEN (CURRENT_DATE - INTERVAL 1 MONTH) AND CURRENT_DATE";
         }

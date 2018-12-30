@@ -117,47 +117,85 @@ function showCuentasFilter() {
 }
 
 function showCategoriasFilter() {
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
     var criterios = document.querySelector('#filtros #criterios');
+    var select = criterios.querySelector('select.categoria');
+    if (select) select.remove();
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200) {
             var response = JSON.parse(request.responseText);
             response.categorias.lista.forEach(function(categoria) {
-                var opcion = document.createElement('div');
-                opcion.classList.add('opcion');
-                var seleccion = document.createElement('div');
-                seleccion.id = 't' + categoria.id;
-                seleccion.innerText = categoria.nombre;
-                seleccion.classList.add('categoria');
-                seleccion.classList.add('test');
-                seleccion.addEventListener('click', function(e) {
-                    var filtros = document.querySelector('#filtros');
-                    filtros.querySelector('button#save').classList.remove('hidden');
-                    var opciones = criterios.querySelectorAll('.opcion');
-                    opciones.forEach(function(item) { item.remove(); });
-                    filtrarPorCategoria(e);
-                });
-                opcion.appendChild(seleccion);
-                var numero = document.createElement('p');
-                numero.innerText = categoria.numero;
-                opcion.appendChild(numero);
-                criterios.appendChild(opcion);
+                if (criterios.getBoundingClientRect().top < window.innerHeight * 0.5
+                || parseInt(categoria.numero) == 0) {
+                    var select = criterios.querySelector('select.categoria');
+                    if (!select) {
+                        select = addCategoriasSelect();
+                        criterios.appendChild(select);
+                    }
+                    var opcion = document.createElement('option');
+                    opcion.value = categoria.id;
+                    opcion.innerText = categoria.nombre;
+                    if (categoria.numero) {
+                        opcion.innerText += ' (' + categoria.numero + ')';
+                        select.querySelector('optgroup:first-of-type').appendChild(opcion);
+                    } else {
+                        select.querySelector('optgroup:not(:first-of-type)').appendChild(opcion);
+                    }
+                } else {
+                    var opcion = document.createElement('div');
+                    opcion.className = 'categoria';
+                    opcion.id = 't' + categoria.id;
+                    opcion.innerHTML = categoria.nombre + '<span class=count>' + categoria.numero + '</span>';
+                    criterios.appendChild(opcion);
+                    opcion.addEventListener('click', filtrarPorCategoria);
+                }
             });
-            var tip = document.createElement('span');
-            tip.className = 'tip';
-            if (response.categorias.lista.length > 0) {
-                tip.innerHTML += '<span>(n&uacute;mero de movimientos en el &uacute;ltimo mes)</span>';
-            } else {
-                tip.innerHTML += '<span>No hay movimientos en el &uacute;ltimo mes</span>';
+            var select = criterios.querySelector('select.categoria');
+            if (select) {
+                var group = select.querySelector('optgroup');
+                if (!group.hasChildNodes()) {
+                    var clue = document.createElement('option');
+                    clue.innerText = 'No hay movimientos';
+                    clue.value = -1;
+                    group.appendChild(clue);
+                }
             }
-            criterios.appendChild(tip);
+            var tip = document.createElement('span');
+            var primera = criterios.querySelector('div.categoria');
+            var cuando = filtros.fecha ? 'en las fechas seleccionadas' : 'en el &uacute;ltimo mes';
+            if (primera) {
+                tip.innerHTML = 'de una de las siguientes categor&iacute;as con movimientos en ' + cuando;
+            } else {
+                tip.innerHTML = 'No hay movimientos ' + cuando + ', pero puedes seleccionar una categor&iacute;a en Otras... y despu&eacute;s seleccionar un rango de fechas';
+                primera = criterios.querySelector('select');
+            }
+            criterios.insertBefore(tip, primera);
         }
     };
-    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
     request.open('GET', 'api/categorias?q=' + encodeURIComponent(JSON.stringify(filtros)));
     request.setRequestHeader('Authorization', localStorage.getItem('token'));
     request.send();
     mostrarBotonesFiltro(false);
+}
+
+function addCategoriasSelect() {
+    var filtros = JSON.parse(sessionStorage.getItem('filtros'));
+    var select = document.createElement('select');
+    select.className = 'categoria';
+    select.addEventListener('change', filtrarPorCategoria);
+    var opcion = document.createElement('option');
+    opcion.value = 0;
+    opcion.innerText = 'Otras...';
+    select.appendChild(opcion);
+    var group = document.createElement('optgroup');
+    var cuando = filtros.fecha ? 'las fechas seleccionadas' : 'el &uacute;ltimo mes';
+    group.label = 'Con movimientos en ' + cuando;
+    select.appendChild(group);
+    group = document.createElement('optgroup');
+    group.label = 'Sin movimientos en ' + cuando;
+    select.appendChild(group);
+    return select;
 }
 
 function showFechasFilter() {
@@ -312,26 +350,47 @@ function dismissFilter() {
 
 function filtrarPorCategoria(e) {
     var categoria = e.target;
+    if (categoria.nodeName == 'SELECT' && categoria.value < 0) {
+        categoria.selectedIndex = 0;
+        return;
+    }
+    var seleccionada = (categoria.nodeName == 'DIV') ? categoria.id.substring(1) : categoria.value;
     var filtros = sessionStorage.getItem('filtros');
     if (filtros) {
         filtros = JSON.parse(filtros);
-        if (filtros.categoria && filtros.categoria == categoria.id.substring(1)) {
+        if (filtros.categoria && filtros.categoria == seleccionada) {
             return;
         } else {
-            filtros.categoria = categoria.id.substring(1);
+            filtros.categoria = seleccionada;
         }
     } else {
-        filtros = {'categoria': categoria.id.substring(1)};
+        filtros = {'categoria': seleccionada};
     }
     sessionStorage.setItem('filtros', JSON.stringify(filtros));
-    var filtros = document.querySelector('#filtros');
-    var seleccion = categoria.cloneNode(true);
-    seleccion.style.opacity = 1;
-    filtros.querySelector('#criterios').appendChild(seleccion);
-    var tip = filtros.querySelector('#criterios span.tip');
-    if (tip) tip.remove();
+    var criterios = document.querySelector('#filtros #criterios');
+    var span = criterios.querySelector('span');
+    if (span) span.remove();
+    criterios.querySelectorAll('.categoria').forEach(function(criterio) {
+        criterio.remove();
+    });
+    var seleccion = document.createElement('div');
+    seleccion.id = 't' + seleccionada;
+    seleccion.className = 'categoria seleccionada';
+    if (categoria.nodeName == 'DIV') {
+        seleccion.innerHTML = categoria.innerHTML;
+        var span = seleccion.querySelector('span');
+        if (span) span.remove();
+    } else {
+        var nombre = categoria.options[categoria.selectedIndex].innerText;
+        seleccion.innerText = nombre;
+        if (nombre.indexOf(' (') > 0) {
+            seleccion.innerText = nombre.substring(0, nombre.lastIndexOf(' ('));
+        }
+    }
+    criterios.appendChild(seleccion);
+    e.target.remove();
     actualizarBotonesFiltro();
-    var criterio = categoria.cloneNode(true);
+    var criterio = seleccion.cloneNode(true);
     criterio.style.opacity = 1;
     leyenda.querySelector('#criterios').appendChild(criterio);
 }
@@ -487,12 +546,10 @@ function actualizarBotonesFiltro() {
         });
     }
     if (!filtros || !filtros.categoria) {
-        var categorias = criterios.querySelectorAll('.categoria');
-        categorias.forEach(function(categoria) {
-            categoria.remove();
-        });
+        var categoria = criterios.querySelector('.categoria');
+        if (categoria) categoria.remove();
     }
-    if (!filtros || !filtros.fechas) {
+    if (!filtros || !filtros.fecha) {
         var fechas = criterios.querySelector('.fechas');
         if (fechas) fechas.remove();
     }
@@ -583,7 +640,6 @@ function loadTable(init) {
         }
     }
 
-    
     var requestm = new XMLHttpRequest();
     requestm.onreadystatechange = function() {
         if (requestm.readyState == 4 && requestm.status == 200) {
@@ -668,13 +724,20 @@ function loadTable(init) {
                 if (importe.innerText.indexOf('-') == 0) importe.innerText = importe.innerText.substring(1);
                 saldo.appendChild(importe);
                 saldo.appendChild(document.querySelector('#criterios .categoria').cloneNode(true));
-                var desde = document.createElement('span');
-                if (criterios.fechas) {
-                    desde.innerText = 'desde ' + formatDate(new Date(response.movimientos.resumen.desde));
+                var entre = document.createElement('span');
+                if (criterios.fecha) {
+                    var desde = new Date(response.movimientos.resumen.desde);
+                    var hasta = new Date(response.movimientos.resumen.hasta);
+                    var diffm = Math.ceil(Math.abs(hasta.getTime() - desde.getTime()) / (1000 * 3600 * 24 * 365/12));
+                    if (diffm > 1) {
+                        entre.innerHTML = 'los &uacute;ltimos ' + diffm.toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' meses';
+                    } else {
+                        entre.innerHTML = 'el &uacute;ltimo mes';
+                    }
                 } else {
-                    desde.innerHTML = 'el &uacute;ltimo mes';
+                    entre.innerHTML = 'el &uacute;ltimo mes';
                 }
-                saldo.appendChild(desde);
+                saldo.appendChild(entre);
                 var posiciones = document.querySelectorAll('.posicion');
                 posiciones.forEach(function(posicion) {
                     var cuenta = posicion.querySelector('.cuenta');
@@ -807,7 +870,8 @@ function handleScroll() {
         leyenda.classList.remove('showing');
     }
 
-    if (tabla.lastChild
+    if (!document.querySelector('#filtros').classList.contains('showing')
+    && tabla.lastChild && tabla.getBoundingClientRect().height > window.innerHeight * 1.5
     && tabla.lastChild.getBoundingClientRect().bottom < window.innerHeight * 1.5) {
         if (!loading.classList.contains('active')) {
             loading.classList.add('active');

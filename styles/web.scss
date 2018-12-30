@@ -229,27 +229,8 @@ body {
             }
         }
 
-        .opcion {
-            display: table;
-            margin: 0.5vh 0.5vw;
-
-            .categoria {
-                display: table;
-                float: left;
-                font-size: 2.3vh;
-                font-weight: 300;
-                padding: 1vh 2vw;
-                margin: 0.5vh 1vw;
-                border: 1px solid grey;
-                border-radius: 1vh;
-                cursor: pointer;
-            }
-
-            p {
-                float: right;
-                margin: 0.5vh 0.5vw;
-                font-size: 2.3vh;
-            }
+        & > span {
+            margin: 1vh;
         }
 
         & > .cuenta.seleccionada {
@@ -257,20 +238,43 @@ body {
         }
 
         & > .categoria {
+            margin: 0.7vh 0;
             width: 100%;
-            margin: 1vh 0;
-            padding: 1vh 3vw;
-            border: 1px solid $indigo;
-            border-radius: 1vh;
+            padding: 2vh 3vh;
+            font-size: 2.5vh;
+            border-radius: 1.2vh;
+            border: 1px solid lightgrey;
+            text-align: left;
+
+            span.count {
+                float: right;                
+                font-size: 2.5vh;
+            }
+
+            &.seleccionada {
+                border: 1px solid $indigo;
+                text-align: center;
+                span { display: none; }
+            }
         }
 
-        span.tip {
+        select.categoria {
             width: 100%;
-            margin: 1vh;
-            font-size: 2vh;
-            font-weight: 300;
-            text-align: center;
-            color: grey;
+            font-size: 2.5vh;
+            padding: 2vh 3vh;
+            border: 1px solid lightgrey;
+            border-radius: 1.2vh;
+            -webkit-appearance: none;
+            background-image: url('img/dropdown.png');
+            background-repeat: no-repeat;
+            background-position-x: 95%;
+            background-position-y: center;
+            background-size: 4vw;
+
+            option {
+                -webkit-appearance: none;
+                color: grey;
+            }
         }
 
         .fechas {
@@ -508,9 +512,9 @@ body {
 
         .fechas {
             color: #00000000;
-            display: table;
             margin: 1vh;
             padding: 0.5vh 2.5vw;
+            display: inline-block;
             border: 1px solid white !important;
             border-radius: 1vh;
             font-size: 0; // Para ocultar los ......
