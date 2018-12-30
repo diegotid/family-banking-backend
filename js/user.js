@@ -762,7 +762,9 @@ function scrollToTop() {
     var balance = document.querySelector('#balance');
     if (balance && !balance.classList.contains('oculto')) {
         var cuenta = document.querySelector('#cabecera .cuenta:first-of-type');
-        start = cuenta.getBoundingClientRect().top;
+        if (cuenta) {
+            start = cuenta.getBoundingClientRect().top;
+        }
     }
     window.scroll({top: start, behaviour: 'smooth'})
     document.addEventListener('scroll', handleScroll);
