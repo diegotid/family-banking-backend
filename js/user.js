@@ -210,12 +210,7 @@ function showFechasFilter() {
     antes.setMonth(antes.getMonth() - 1);
     fechas.appendChild(hojaCalendario(antes));
     fechas.appendChild(hojaCalendario(hoy));
-    var categoria = criterios.querySelector('.categoria');
-    if (categoria) {
-        criterios.insertBefore(fechas, categoria);
-    } else {
-        criterios.appendChild(fechas);
-    }
+    criterios.appendChild(fechas);
     mostrarBotonesFiltro(false);    
 }
 
@@ -241,12 +236,7 @@ function showImporteFilter() {
     importe.appendChild(y);
     var yTip = document.createElement('span');
     importe.insertBefore(yTip, y);
-    var categoria = criterios.querySelector('.categoria');
-    if (categoria) {
-        criterios.insertBefore(importe, categoria);
-    } else {
-        criterios.appendChild(importe);
-    }
+    criterios.appendChild(importe);
     mostrarBotonesFiltro(false);
     entre.focus();
 }
@@ -420,7 +410,7 @@ function filtrarPorCuenta(e) {
         criterio.remove();
     });
     criterios = filtros.querySelector('#criterios');
-    criterios.insertBefore(seleccion, criterios.firstChild);
+    criterios.appendChild(seleccion);
     var criterio = cuenta.cloneNode(true);
     criterio.style.opacity = 1;
     criterio.setAttribute('color', cuenta.getAttribute('color'));
