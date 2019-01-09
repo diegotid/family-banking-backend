@@ -79,9 +79,8 @@ class bancaAPI extends API {
       $filtros = json_decode(urldecode($this->request['q']));
       
       $condiciones = $this->condiciones($filtros);
-      if ($condiciones == 'TRUE') {
-        $condiciones = "M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
-      }
+      $condiciones .= " AND M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
+
       $query = "SELECT T.id id, T.nombre nombre, COUNT(*) numero
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
@@ -165,18 +164,15 @@ class bancaAPI extends API {
       $resultado = [];
       $resultado['lista'] = $movimientos;
 
-      if ($offset == 0
-      && isset($filtros->categoria)) {
-        $query = "SELECT SUM(importe) total, MIN(fecha) desde, MAX(fecha) hasta
-                  FROM MOVIMIENTO WHERE categoria = " . $filtros->categoria;
-        if (isset($filtros->cuenta)) {
-          $query .= " AND cuenta = " . $filtros->cuenta;
-        }
-        if (isset($filtros->fecha)) {
-          $query .= " AND fecha >= '" . $filtros->fecha->desde . "' AND fecha <= '" . $filtros->fecha->hasta . "'";
-        } else {
-          $query .= " AND fecha BETWEEN (CURRENT_DATE - INTERVAL 1 MONTH) AND CURRENT_DATE";
-        }
+      if ($offset == 0 && !empty($filtros)) {
+        $condiciones = $this->condiciones($filtros);
+        $condiciones .= " AND M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
+        $query = "SELECT SUM(M.importe) total, MIN(M.fecha) desde, MAX(M.fecha) hasta
+                  FROM MOVIMIENTO M
+                  JOIN CUENTA C ON M.cuenta = C.id
+                  JOIN BANCO B ON C.banco = B.id
+                  JOIN CATEGORIA T ON categoria = T.id
+                  WHERE " . $condiciones;
         $result = $con->query($query);
         $resultado['resumen'] = $result->fetch_assoc();
       }
@@ -200,11 +196,14 @@ class bancaAPI extends API {
     }
     if (isset($filtros->importe)) {
       if (isset($filtros->importe->entre)) {
-        $query .= " AND ABS(M.importe) >= ABS(" . $filtros->importe->entre . ") ";
+        $query .= " AND ABS(M.importe) >= " . $filtros->importe->entre;
       }
       if (isset($filtros->importe->y)) {
-        $query .= " AND ABS(M.importe) <= ABS(" . $filtros->importe->y . ")";
+        $query .= " AND ABS(M.importe) <= " . $filtros->importe->y;
       }
+    }
+    if (isset($filtros->tipo)) {
+      $query .= " AND M.importe " . ($filtros->tipo == 'abono' ? '>' : '<') . " 0";
     }
 
     return $query;
