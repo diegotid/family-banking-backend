@@ -4,11 +4,18 @@ $light: rgb(163, 163, 163);
 $indigo: rgb(31, 57, 75);
 $indigolight: rgba(107, 129, 145, 0.5);
 $indigothru: rgba(31, 57, 75, 0.9);
+$gwhite: rgb(247, 247, 247);
 
 @mixin shadow {
-    -webkit-box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);
-    box-shadow: 0px 10px 15px -7.5px rgba(0,0,0,0.75);   
+    -webkit-box-shadow: 0px 10px 15px -7.5px rgba(0, 0 ,0, 0.75);
+    -moz-box-shadow: 0px 10px 15px -7.5px rgba(0, 0 ,0, 0.75);
+    box-shadow: 0px 10px 15px -7.5px rgba(0, 0 ,0, 0.75);
+}
+
+@mixin little-shadow {
+    -webkit-box-shadow: 0px 10px 15px -7.5px rgba(0, 0 ,0, 0.75);
+    -moz-box-shadow: 0px 10px 15px -7.5px rgba(0, 0 ,0, 0.75);
+    box-shadow: 0px 5px 18px -10px rgba(0, 0 ,0, 0.75);
 }
 
 html,
@@ -187,7 +194,7 @@ body {
 
 #filtros,
 #edit {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: $gwhite;
 
     button {
         width: 100%;
@@ -279,20 +286,23 @@ body {
 
         .fechas {
             width: 100%;
-            margin: 1vh 0;
+            margin: 2.5vh 0 0 0;
             color: lightgrey;
             font-size: 13vw;
             font-weight: 400;
             text-align: center;
+            background-image: linear-gradient(to bottom, $gwhite 0%, $gwhite 49%, grey 50%, $gwhite 51%, $gwhite 100%) !important;
 
             .fecha {
                 display: table;
                 padding: 2vw;
+                margin: 0 1.5vw 1.7vh 1.5vw;
                 border: 1px solid grey;
                 border-radius: 1vh;
                 min-width: 22vw;
                 min-height: 22vw;
                 background-image: linear-gradient(to bottom, rgb(253, 74, 82) 0%,rgb(253, 74, 82) 35%, rgb(235, 235, 235) 36%,rgb(235, 235, 235) 100%) !important;
+                @include little-shadow;
 
                 &:first-of-type { float: left; }
                 &:last-of-type { float: right; }
@@ -342,6 +352,7 @@ body {
             margin: 0;
 
             input {
+                display: none;
                 font-size: 5vh;
                 padding: 1.8vh 2vh;
                 border: 1px solid lightgrey;
@@ -360,6 +371,82 @@ body {
 
             span {
                 display: none;
+            }
+
+            button {
+                width: 47%;
+                padding: 1vh 3vh;
+                border: 1px solid;
+                border-radius: 1.2vh;
+                background: none;
+                
+                &.abonos {
+                    float: left;
+                    color: green;
+                    border-color: green;
+                    border-top-right-radius: 0;
+                    border-bottom-right-radius: 0;
+                    margin-left: 2%;
+
+                    &.selected {
+                        color: white;
+                        background-color: green;
+                    }
+                }
+
+                &.cargos {
+                    float: right;
+                    color: $indigo;
+                    border-color: $indigo;
+                    border-top-left-radius: 0;
+                    border-bottom-left-radius: 0;
+                    margin-right: 2%;
+
+                    &.selected {
+                        color: white;
+                        background-color: $indigo;
+                    }
+                }
+            }
+
+            #slider {
+                width: 100%;
+                display: inline-block;
+                padding: 0 !important;
+                margin: 2.5vh 0 0 0 !important;
+                color: lightgrey !important;
+                font-size: 13vw;
+                font-weight: 400;
+                text-align: center;
+                background-image: linear-gradient(to bottom, $gwhite 0%, $gwhite 39%, grey 40%, $gwhite 41%, $gwhite 100%) !important;
+
+                .handle {
+                    display: table;
+                    padding: 3vw 2vw 0 2vw;
+                    font-weight: 400;
+                    font-size: 5vw;
+                    margin: 0 1.5vw 1.7vh 1.5vw;
+                    border: 1px solid grey;
+                    border-radius: 1vh;
+                    min-width: 16vw;
+                    min-height: 16vw;
+                    background-image: linear-gradient(to bottom, rgb(235, 235, 235) 0%,rgb(235, 235, 235) 63%, $indigo 64%, $indigo 100%) !important;
+                    @include little-shadow;
+    
+                    &:first-of-type { float: left; }
+                    &:last-of-type { float: right; }
+
+                    span {
+                        color: lightgrey;
+                        display: table;
+                        font-family: 'Courier New', Courier, monospace;
+                        font-weight: bold;
+                        font-size: 3vh;
+                        bottom: 0;
+                        margin: 0 auto;
+                        padding: 1.5vh 0 0 0;
+                    }
+                }
             }
         }
     }
@@ -516,7 +603,6 @@ body {
             display: inline-block;
             border: 1px solid white !important;
             border-radius: 1vh;
-            font-size: 0; // Para ocultar los ......
 
             div {
                 display: table;
@@ -542,6 +628,7 @@ body {
                     font-weight: 400;
                 }
             }
+
             input {
                 display: none;
             }
@@ -561,6 +648,12 @@ body {
             input {
                 display: none;
             }
+        }
+
+        input,
+        button,
+        #slider {
+            display: none;
         }
     }
 
@@ -780,6 +873,12 @@ body {
                     }
                 }
             }
+        }
+
+        input,
+        button,
+        #slider {
+            display: none;
         }
     }
 

@@ -181,6 +181,47 @@ class bancaAPI extends API {
     }
   }
 
+  protected function limites() {
+    
+    global $con;
+
+    if ($this->method == 'GET') {
+
+      if (!isset($this->token)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+      $filtros = json_decode(urldecode($this->request['q']));
+      $condiciones = $this->condiciones($filtros);
+
+      $query = "SELECT MAX(ABS(M.importe)) max, MIN(ABS(M.importe)) min, COUNT(*) no
+                FROM MOVIMIENTO M
+                JOIN CUENTA C ON M.cuenta = C.id
+                JOIN BANCO B ON C.banco = B.id
+                JOIN CATEGORIA T ON categoria = T.id
+                WHERE " . $condiciones;
+
+      $result = $con->query($query);
+      $limites = $result->fetch_assoc();
+      
+      $percentiles = array(5 => null, 95 => null);
+      foreach ($percentiles as $perc => $value) {
+        $query = "SELECT ABS(M.importe) valor
+                  FROM MOVIMIENTO M
+                  JOIN CUENTA C ON M.cuenta = C.id
+                  JOIN BANCO B ON C.banco = B.id
+                  JOIN CATEGORIA T ON categoria = T.id
+                  WHERE " . $condiciones . "
+                  ORDER BY valor LIMIT " . round($perc * $limites['no'] / 100) . ",1";
+        $result = $con->query($query);
+        $valor = $result->fetch_assoc();
+        $percentiles[$perc] = $valor['valor'];
+      }
+      $limites['perc'] = $percentiles;
+
+      return array('status' => 200, 'limites' => $limites);
+    }
+  }
+
   protected function condiciones($filtros) {
 
     $query = "TRUE";

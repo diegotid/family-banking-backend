@@ -1,5 +1,8 @@
 
 var midScreen = 2;
+var dragImporteStart = {};
+var minImporte;
+var maxImporte;
 
 function auth() {
     var request = new XMLHttpRequest();
@@ -71,10 +74,8 @@ function rgb2hex(rgb) {
 
 function showFilter() {
     var filtros = document.querySelector('#filtros');
-    filtros.querySelectorAll('button').forEach(function(boton) {
-        if (boton.id != 'dismiss' && boton.id != 'save') {
-            boton.remove();
-        }
+    filtros.querySelectorAll(':scope > button:not(#save):not(#dismiss)').forEach(function(boton) {
+        boton.remove();
     });
     filtros.classList.add('showing');
     document.querySelector('#leyenda').classList.remove('showing');
@@ -82,7 +83,7 @@ function showFilter() {
     document.body.classList.add('freeze');
     document.body.addEventListener('touchmove', freeze, { passive: false });
     filtros.querySelector('button#save').classList.add('hidden');
-    var cancelButton = filtros.querySelector('button:last-of-type');
+    var cancelButton = filtros.querySelector('button#dismiss');
     var buttonCuenta = document.createElement('button');
     buttonCuenta.innerText = 'Filtrar por cuenta';
     buttonCuenta.id = 'cuenta';
@@ -205,7 +206,6 @@ function showFechasFilter() {
     if (fechas) fechas.remove();
     fechas = document.createElement('div');
     fechas.classList.add('fechas');
-    fechas.innerText = '.........';
     var hoy = new Date();
     var antes = new Date();
     antes.setMonth(antes.getMonth() - 1);
@@ -216,6 +216,7 @@ function showFechasFilter() {
 }
 
 function showImporteFilter() {
+
     var criterios = document.querySelector('#filtros #criterios');
     var importe = criterios.querySelector('.importe');
     if (importe) importe.remove();
@@ -239,9 +240,188 @@ function showImporteFilter() {
     var yTip = document.createElement('span');
     yTip.className = 'tip';
     importe.insertBefore(yTip, y);
+
+    var abonos = document.createElement('button');
+    abonos.className = 'abonos';
+    abonos.innerText = 'Abonos';
+    abonos.addEventListener('click', seleccionBotonesImporte);
+    importe.appendChild(abonos);
+    var cargos = document.createElement('button');
+    cargos.className = 'cargos';
+    cargos.innerText = 'Cargos';
+    cargos.addEventListener('click', seleccionBotonesImporte);
+    importe.appendChild(cargos);
+
+    var slider = document.createElement('div');
+    slider.id = 'slider';
+    importe.appendChild(slider);
+    var curr = document.createElement('span');
+    curr.innerHTML = '&euro;';
+    var left = document.createElement('div');
+    left.className = 'handle';
+    left.id = 'left';
+    left.appendChild(curr.cloneNode(true));
+    left.draggable = true;
+    left.addEventListener('mousedown', agarrarImporte, false);
+    left.addEventListener('touchstart', agarrarImporte, false);
+    left.addEventListener('mousemove', moverImporte, false);
+    left.addEventListener('touchmove', moverImporte, false);
+    slider.addEventListener('mouseup', soltarImporte, false);
+    slider.addEventListener('touchend', soltarImporte, false);
+    slider.appendChild(left);
+    var right = document.createElement('div');
+    right.className = 'handle';
+    right.id = 'right';
+    right.appendChild(curr.cloneNode(true));
+    right.draggable = true;
+    right.addEventListener('mousedown', agarrarImporte, false);
+    right.addEventListener('touchstart', agarrarImporte, false);
+    right.addEventListener('mousemove', moverImporte, false);
+    right.addEventListener('touchmove', moverImporte, false);
+    slider.addEventListener('mouseup', soltarImporte, false);
+    slider.addEventListener('touchend', soltarImporte, false);
+    slider.appendChild(right);
+    actualizarLimites();
+
     criterios.appendChild(importe);
     mostrarBotonesFiltro(false);
-    entre.focus();
+}
+
+function agarrarImporte(e) {
+    if (!e.target.classList.contains('handle')) return;
+    e.preventDefault();
+    var margen = 0;
+    if (e.target.id == 'left' && !isNaN(parseInt(e.target.style.marginLeft))) {
+        margen = -1 * parseInt(e.target.style.marginLeft);
+    }
+    if (e.target.id == 'right' && !isNaN(parseInt(e.target.style.marginRight))) {
+        margen = parseInt(e.target.style.marginRight);
+    }
+    var punto = e.clientX;
+    if (e.touches) {
+        punto = e.touches.item(0).clientX;
+    }
+    dragImporteStart[e.target.id] = margen + punto;
+}
+
+function moverImporte(e) {
+    if (!e.target.classList.contains('handle')) return;
+    e.preventDefault();
+    if (e.target.id in dragImporteStart
+    && dragImporteStart[e.target.id] > 0) {
+        var punto = e.clientX;
+        if (e.touches) {
+            punto = e.touches.item(0).clientX;
+        }
+        var campo = document.querySelector('#criterios .importe input:nth-of-type(1)');
+        var slider = document.querySelector('.importe #slider').getBoundingClientRect();
+        var leftHandle = document.querySelector('#left.handle').getBoundingClientRect();
+        var rightHandle = document.querySelector('#right.handle').getBoundingClientRect();
+        var ancho = e.target.getBoundingClientRect().width;
+        var curr = e.target.querySelector('span');
+        var max = 1.5 * window.innerWidth / 100; // 1.5vw
+        curr = curr.cloneNode(true);
+        if (e.target.id == 'left') {
+            var nuevoMargen = punto - dragImporteStart[e.target.id];
+            if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
+            || e.target.getBoundingClientRect().right + (nuevoMargen - parseInt(getComputedStyle(e.target).marginLeft)) > rightHandle.left - max * 2) {
+                return;
+            }
+            e.target.style.marginLeft = nuevoMargen;
+        }
+        if (e.target.id == 'right') {
+            var nuevoMargen = dragImporteStart[e.target.id] - punto;
+            if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
+            || e.target.getBoundingClientRect().left - (nuevoMargen - parseInt(getComputedStyle(e.target).marginRight)) < leftHandle.right + max * 2) {
+                return;
+            }
+            e.target.style.marginRight = nuevoMargen;
+            campo = document.querySelector('#criterios .importe input:nth-of-type(2)');
+        }
+        var recorrido = slider.width - ancho;
+        var posicion = e.target.getBoundingClientRect().left - slider.left;
+        var nuevoImporte = minImporte + (maxImporte - minImporte) * posicion / recorrido;
+        if (nuevoImporte < 1) {
+            campo.value = nuevoImporte.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+        } else {
+            campo.value = 10 * Math.trunc(nuevoImporte / 10) + (e.target.id == 'right' ? 10 : 0);
+        }
+        e.target.innerHTML = campo.value;
+        e.target.appendChild(curr);
+    }
+}
+ 
+function soltarImporte(e) {
+    e.preventDefault();
+    dragImporteStart = {};
+    filtrarPorImporte();
+}
+
+function actualizarLimites(abonos, cargos) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            var response = JSON.parse(request.responseText);
+            var left = document.querySelector('#filtros #criterios .importe #left');
+            var right = document.querySelector('#filtros #criterios .importe #right');
+            var curr = document.createElement('span');
+            curr.innerHTML = '&euro;';
+            minImporte = parseFloat(response.limites.perc['5']);
+            maxImporte = parseFloat(response.limites.perc['95']);
+            if (minImporte > 1) {
+                minImporte = Math.trunc(minImporte);
+                left.innerHTML = minImporte;
+            } else {
+                left.innerHTML = minImporte.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+            }
+            document.querySelector('#criterios .importe input:nth-of-type(1)').value = minImporte;
+            left.appendChild(curr.cloneNode(true));
+            if (maxImporte > 1) {
+                maxImporte = 1 + Math.trunc(maxImporte);
+                right.innerHTML = maxImporte;
+            } else {
+                right.innerHTML = maxImporte.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+            }
+            document.querySelector('#criterios .importe input:nth-of-type(2)').value = maxImporte;
+            right.appendChild(curr.cloneNode(true));
+            left.style.marginLeft = 1.5 * window.innerWidth / 100; // 1.5vw
+            right.style.marginRight = 1.5 * window.innerWidth / 100; // 1.5vw
+        }
+    }
+    var query = '?q=' + encodeURIComponent(JSON.stringify(filtros));
+    var tipo = abonos ? 'abono' : (cargos ? 'cargo' : null);
+    if (tipo) query += '&type=' + tipo;
+    request.open('GET', 'api/limites' + query);
+    request.setRequestHeader('Authorization', localStorage.getItem('token'));
+    request.send();
+}
+
+function seleccionBotonesImporte(e) {
+    var seleccionado = e.target.classList.contains('selected');
+    e.target.parentNode.querySelectorAll('button').forEach(function(boton) {
+        boton.classList.remove('selected');
+    });
+    if (!seleccionado) e.target.classList.add('selected');
+    var cargos = e.target.parentNode.querySelector('.cargos').classList.contains('selected');
+    var abonos = e.target.parentNode.querySelector('.abonos').classList.contains('selected');
+    var filtros = sessionStorage.getItem('filtros');
+    if (filtros) {
+        filtros = JSON.parse(filtros);
+        if (abonos || cargos) {
+            filtros.tipo = abonos ? 'abono' : 'cargo';
+        } else {
+            delete filtros.tipo;
+        }
+        sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    } else if (cargos) {
+        filtros = {'tipo': 'cargo'};
+        sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    } else if (abonos) {
+        filtros = {'tipo': 'abono'};
+        sessionStorage.setItem('filtros', JSON.stringify(filtros));
+    }
+    actualizarLimites(abonos, cargos);
+    filtrarPorImporte();
 }
 
 function hojaCalendario(fecha) {
@@ -303,7 +483,7 @@ function cambiarFecha(e) {
 
 function cambiarImporte(e) {
     var importe = e.target;
-    if (isNaN(importe.value)) {
+    if (importe.value && isNaN(importe.value)) {
         alert('Por favor, centrate!');
         importe.value = '';
         return;
@@ -321,10 +501,8 @@ function hideFilter() {
 function dismissFilter() {
     sessionStorage.removeItem('filtros');
     var filtros = document.querySelector('#filtros');
-    filtros.querySelectorAll('button').forEach(function(boton) {
-        if (boton.id != 'dismiss' && boton.id != 'save') {
-            boton.remove();
-        }
+    filtros.querySelectorAll(':scope > button:not(#save):not(#dismiss)').forEach(function(boton) {
+        boton.remove();
     });
     var criterios = document.querySelectorAll('#criterios');
     criterios.forEach(function(criterio) {
@@ -364,7 +542,7 @@ function filtrarPorCategoria(e) {
     criterios.querySelectorAll('.categoria').forEach(function(criterio) {
         criterio.remove();
     });
-    var tip = criterios.querySelector('span.tip');
+    var tip = criterios.querySelector(':scope > span.tip');
     if (tip) tip.remove();
     var seleccion = document.createElement('div');
     seleccion.id = 't' + seleccionada;
@@ -457,13 +635,13 @@ function filtrarPorImporte() {
     var entreTip = document.querySelector('#criterios .importe span:nth-of-type(1)');
     if (entre.length > 0) {
         importe.entre = entre;
-        entreTip.innerHTML = 'm&aacute;s de ' + entre.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+        entreTip.innerHTML = '&gt; ' + entre.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
     }
     var y = document.querySelector('#criterios .importe input:nth-of-type(2)').value;
     var yTip = document.querySelector('#criterios .importe span:nth-of-type(2)');
     if (y.length > 0) {
         importe.y = y;
-        yTip.innerHTML = 'menos de ' + y.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+        yTip.innerHTML = '&lt; ' + y.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
     }
     var filtros = sessionStorage.getItem('filtros');
     if (filtros) {
@@ -486,7 +664,7 @@ function filtrarPorImporte() {
 }
 
 function mostrarBotonesFiltro(mostrar) {
-    var botones = document.querySelectorAll('#filtros button:not(#dismiss)');
+    var botones = document.querySelectorAll('#filtros > button:not(#dismiss)');
     botones.forEach(function(boton) {
         if (mostrar) {
             boton.classList.remove('hidden');
@@ -541,7 +719,7 @@ function actualizarBotonesFiltro() {
         criterios.querySelectorAll('.categoria').forEach(function(criterio) {
             criterio.remove();
         });
-        var tip = criterios.querySelector('span.tip');
+        var tip = criterios.querySelector(':scope > span.tip');
         if (tip) tip.remove();
     }
     if (!filtros || !filtros.fecha) {
@@ -552,12 +730,6 @@ function actualizarBotonesFiltro() {
         var importe = criterios.querySelector('.importe');
         if (importe) importe.remove();
     }
-    formulario.classList.add('showing');
-    var leyenda = document.querySelector('#leyenda');
-    leyenda.classList.remove('showing');
-    document.querySelector('#oscuro').classList.add('showing');
-    document.body.classList.add('freeze');
-    document.body.addEventListener('touchmove', freeze, { passive: false });
 }
 
 function loadTable(init) {
@@ -718,7 +890,21 @@ function loadTable(init) {
                 }
                 if (importe.innerText.indexOf('-') == 0) importe.innerText = importe.innerText.substring(1);
                 saldo.appendChild(importe);
-                saldo.appendChild(document.querySelector('#criterios .categoria').cloneNode(true));
+                var categoria = document.querySelector('#criterios .categoria');
+                if (categoria) {
+                    saldo.appendChild(categoria.cloneNode(true));
+                }
+                if (criterios.importe) {
+                    var importe = document.createElement('span');
+                    if (criterios.importe.entre && criterios.importe.y) {
+                        importe.innerHTML = 'entre ' + criterios.importe.entre + '&euro; y ' + criterios.importe.y + '&euro;';
+                    } else if (criterios.importe.entre) {
+                        importe.innerHTML = 'm&aacute;s de ' + criterios.importe.entre + '&euro;';
+                    } else if (criterios.importe.y) {
+                        importe.innerHTML = 'menos de ' + criterios.importe.y + '&euro;';
+                    }
+                    saldo.appendChild(importe);
+                }
                 var entre = document.createElement('span');
                 if (criterios.fecha) {
                     var desde = new Date(criterios.fecha.desde);
