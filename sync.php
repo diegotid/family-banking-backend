@@ -3,8 +3,25 @@
 require_once 'conf/db.php';
 require_once 'conf/auth.php';
 
+function sendPush($message) {
+    curl_setopt_array($ch = curl_init(), array(
+        CURLOPT_URL => "https://api.pushover.net/1/messages.json",
+        CURLOPT_POSTFIELDS => array(
+            "token" => "aj8no7ovf67imkcyd74szygaxrt53m",
+            "user" => "uiqajcj56tenw3ph4pz15qkv9c32vy",
+            "message" => $message,
+        ),
+        CURLOPT_SAFE_UPLOAD => true,
+        CURLOPT_RETURNTRANSFER => true,
+    ));
+    curl_exec($ch);
+    curl_close($ch);
+}
+
 if (isset($_GET['banco'])) $bancosel = $_GET['banco'];
 if (isset($_GET['fecha'])) $fechasel = $_GET['fecha'];
+
+$now = new DateTime();
 
 if (!isset($bancosel) && !isset($fechasel)) {
     $result = $con->query("SELECT MAX(fecha) ultimo FROM MOVIMIENTO");
@@ -12,6 +29,7 @@ if (!isset($bancosel) && !isset($fechasel)) {
     $from = $movimiento['ultimo'];
     if ($from) {
         $from = DateTime::createFromFormat('Y-m-d', $from);
+        $diff = $from->diff($now);
         $from->sub(new DateInterval('P3D'));
     }
 } else if (isset($fechasel) && $fechasel != 0) {
@@ -47,10 +65,14 @@ while (true) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('O-AUTH-TOKEN:' . $token));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('O-AUTH-TOKEN:' . $afterbanks_token));
     $transfers = json_decode(curl_exec($ch));
     curl_close($ch);
-
+    
+    if (!is_array($transfers)) {
+        sendPush('Algo fue mal: ' . serialize($transfers) . ' llamando: ' . $url);
+        break;
+    }
     if (count($transfers) == 0) {
         break;
     } else {
@@ -75,6 +97,13 @@ while (true) {
                 $con->query("INSERT INTO MOVIMIENTO (hash, fecha, cuenta, categoria, importe, descripcion) VALUES ('{$transfer->md5}', '{$transfer->date}', {$cuenta}, {$transfer->idType}, {$transfer->amount}, '{$transfer->description}')");
                 if ($con->affected_rows > 0) {
                     $total += $con->affected_rows;
+                    $amount = number_format(abs(floatval($transfer->amount)), 2, ',', '.');
+                    if (floatval($transfer->amount) < -38.5) {
+                        sendPush('Adeudo de ' . $amount . ' € - ' . $transfer->description);
+                    }
+                    if (floatval($transfer->amount) > 1) {
+                        sendPush('Abono de ' . $amount . ' € - ' . $transfer->description);
+                    }
                 }
             } catch (Exception $e) {
                 // Intentamos con los siguientes
@@ -83,8 +112,16 @@ while (true) {
     }
 }
 
-echo $total . ' movimientos insertados
-';
+if ($total > 0) {
+    // sendPush($total . ' movimientos insertados (' . $now->format('Y-m-d H:i') . ')');
+} else {
+    if (isset($diff)) {
+        $diff = intval($diff->format('%a'));
+        if ($diff > 2) { // Los fines de semana no hay actualizaciones
+            sendPush('No se registran movimientos en los últimos ' . $diff . ' días');
+        }
+    }
+}
 
 $ch = curl_init();
 $url = 'www.afterbanks.com/apiapp/getBanks';
@@ -92,7 +129,7 @@ curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, array('O-AUTH-TOKEN:' . $token));
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('O-AUTH-TOKEN:' . $afterbanks_token));
 $banks = json_decode(curl_exec($ch));
 curl_close($ch);
 
