@@ -135,6 +135,8 @@ class bancaAPI extends API {
                 WHERE " . $this->condiciones($filtros) . "
                 ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
+      error_log('Query... ' . $query);
+
       $result = $con->query($query);
       while ($movimiento = $result->fetch_assoc()) {
         $movimiento['importe'] = round(floatval($movimiento['importe']), 2);
@@ -226,8 +228,14 @@ class bancaAPI extends API {
 
     $query = "TRUE";
 
-    if (isset($filtros->cuenta)) {
-      $query .= " AND C.id = " . $filtros->cuenta;
+    error_log(print_r($filtros, true));
+
+    if (isset($filtros->cuentas) && count($filtros->cuentas)) {
+      $query .= " AND (FALSE";
+      foreach ($filtros->cuentas as $cuenta) {
+        $query .= (" OR C.id = " . $cuenta);
+      }
+      $query .= ")";
     }
     if (isset($filtros->categoria)) {
       $query .= " AND T.id = " . $filtros->categoria;
@@ -242,6 +250,9 @@ class bancaAPI extends API {
       if (isset($filtros->importe->y)) {
         $query .= " AND ABS(M.importe) <= " . $filtros->importe->y;
       }
+    }
+    if (isset($filtros->concepto) && strlen($filtros->concepto) > 0) {
+      $query .= " AND LOWER(M.descripcion) LIKE '%" . strtolower($filtros->concepto) . "%'";
     }
     if (isset($filtros->tipo)) {
       $query .= " AND M.importe " . ($filtros->tipo == 'abono' ? '>' : '<') . " 0";
