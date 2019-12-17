@@ -295,13 +295,13 @@ body {
 
             .fecha {
                 display: table;
-                padding: 2vw;
+                padding: 1vw 1.2vw;
                 margin: 0 1.5vw 1.7vh 1.5vw;
                 border: 1px solid grey;
                 border-radius: 1vh;
-                min-width: 22vw;
-                min-height: 22vw;
-                background-image: linear-gradient(to bottom, rgb(253, 74, 82) 0%,rgb(253, 74, 82) 35%, rgb(235, 235, 235) 36%,rgb(235, 235, 235) 100%) !important;
+                min-width: 16vw;
+                min-height: 16vw;
+                background-image: linear-gradient(to bottom, rgb(253, 74, 82) 0%,rgb(253, 74, 82) 40%, rgb(235, 235, 235) 41%,rgb(235, 235, 235) 100%) !important;
                 @include little-shadow;
 
                 &:first-of-type { float: left; }
@@ -318,24 +318,25 @@ body {
                     &:nth-of-type(1) {
                         float: left;
                         font-size: 5vw;
-                        margin: -6% auto;
+                        margin: -7% auto;
                         color: white;
                     }
                     &:nth-of-type(2) {
                         float: right;
+                        margin-top: 2%;
                         font-size: 4vw;
+                        font-weight: 400;
                         color: white;
                     }
                     &:nth-of-type(3) {
-                        font-size: 11vw;
+                        font-size: 7vw;
                         font-weight: 400;
-                        margin-top: 32%;
+                        margin-top: 44%;
                         margin-bottom: -30%;
                         clear: both;
 
                         &.hoy {
-                            font-size: 8vw;
-                            margin-top: 42%;
+                            font-size: 6vw;
                         }
                     }
                 }
@@ -801,6 +802,7 @@ body {
 
         div.saldo,
         div.cuenta {
+            top: 0;
             left: 0;
             right: 0;
             text-align: center;

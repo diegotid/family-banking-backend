@@ -1,8 +1,12 @@
 
 var midScreen = 2;
+var dragStart;
 var dragImporteStart = {};
 var minImporte;
 var maxImporte;
+var dragFechaStart = {};
+var minFecha;
+var maxFecha;
 
 function auth() {
     var request = new XMLHttpRequest();
@@ -206,11 +210,29 @@ function showFechasFilter() {
     if (fechas) fechas.remove();
     fechas = document.createElement('div');
     fechas.classList.add('fechas');
-    var hoy = new Date();
-    var antes = new Date();
-    antes.setMonth(antes.getMonth() - 1);
-    fechas.appendChild(hojaCalendario(antes));
-    fechas.appendChild(hojaCalendario(hoy));
+    minFecha = new Date();
+    maxFecha = new Date();
+    minFecha.setMonth(minFecha.getMonth() - 1);
+    var desde = hojaCalendario(minFecha);
+    var hasta = hojaCalendario(maxFecha);
+    desde.id = 'desde';
+    desde.draggable = true;
+    desde.addEventListener('mousedown', agarrarFecha, false);
+    desde.addEventListener('touchstart', agarrarFecha, false);
+    desde.addEventListener('mousemove', moverFecha, false);
+    desde.addEventListener('touchmove', moverFecha, false);
+    fechas.addEventListener('mouseup', soltarFecha, false);
+    fechas.addEventListener('touchend', soltarFecha, false);
+    fechas.appendChild(desde);
+    hasta.id = 'hasta';
+    hasta.draggable = true;
+    hasta.addEventListener('mousedown', agarrarFecha, false);
+    hasta.addEventListener('touchstart', agarrarFecha, false);
+    hasta.addEventListener('mousemove', moverFecha, false);
+    hasta.addEventListener('touchmove', moverFecha, false);
+    fechas.addEventListener('mouseup', soltarFecha, false);
+    fechas.addEventListener('touchend', soltarFecha, false);
+    fechas.appendChild(hasta);
     criterios.appendChild(fechas);
     mostrarBotonesFiltro(false);    
 }
@@ -288,27 +310,37 @@ function showImporteFilter() {
 }
 
 function agarrarImporte(e) {
-    if (!e.target.classList.contains('handle')) return;
-    e.preventDefault();
-    var margen = 0;
-    if (e.target.id == 'left' && !isNaN(parseInt(e.target.style.marginLeft))) {
-        margen = -1 * parseInt(e.target.style.marginLeft);
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('handle')) {
+        objeto = objeto.parentNode;
     }
-    if (e.target.id == 'right' && !isNaN(parseInt(e.target.style.marginRight))) {
-        margen = parseInt(e.target.style.marginRight);
+    e.preventDefault();
+
+    var margen = 0;
+    if (objeto.id == 'left' && !isNaN(parseInt(objeto.style.marginLeft))) {
+        margen = -1 * parseInt(objeto.style.marginLeft);
+    }
+    if (objeto.id == 'right' && !isNaN(parseInt(objeto.style.marginRight))) {
+        margen = parseInt(objeto.style.marginRight);
     }
     var punto = e.clientX;
     if (e.touches) {
         punto = e.touches.item(0).clientX;
     }
-    dragImporteStart[e.target.id] = margen + punto;
+    dragImporteStart[objeto.id] = margen + punto;
 }
 
 function moverImporte(e) {
-    if (!e.target.classList.contains('handle')) return;
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('handle')) {
+        objeto = objeto.parentNode;
+    }
     e.preventDefault();
-    if (e.target.id in dragImporteStart
-    && dragImporteStart[e.target.id] > 0) {
+
+    if (objeto.id in dragImporteStart
+    && dragImporteStart[objeto.id] > 0) {
         var punto = e.clientX;
         if (e.touches) {
             punto = e.touches.item(0).clientX;
@@ -317,44 +349,154 @@ function moverImporte(e) {
         var slider = document.querySelector('.importe #slider').getBoundingClientRect();
         var leftHandle = document.querySelector('#left.handle').getBoundingClientRect();
         var rightHandle = document.querySelector('#right.handle').getBoundingClientRect();
-        var ancho = e.target.getBoundingClientRect().width;
-        var curr = e.target.querySelector('span');
+        var ancho = objeto.getBoundingClientRect().width;
+        var curr = objeto.querySelector('span');
         var max = 1.5 * window.innerWidth / 100; // 1.5vw
         curr = curr.cloneNode(true);
-        if (e.target.id == 'left') {
-            var nuevoMargen = punto - dragImporteStart[e.target.id];
+        if (objeto.id == 'left') {
+            var nuevoMargen = punto - dragImporteStart[objeto.id];
             if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
-            || e.target.getBoundingClientRect().right + (nuevoMargen - parseInt(getComputedStyle(e.target).marginLeft)) > rightHandle.left - max * 2) {
+            || objeto.getBoundingClientRect().right + (nuevoMargen - parseInt(getComputedStyle(objeto).marginLeft)) > rightHandle.left - max * 2) {
                 return;
             }
-            e.target.style.marginLeft = nuevoMargen;
+            objeto.style.marginLeft = nuevoMargen;
         }
-        if (e.target.id == 'right') {
-            var nuevoMargen = dragImporteStart[e.target.id] - punto;
+        if (objeto.id == 'right') {
+            var nuevoMargen = dragImporteStart[objeto.id] - punto;
             if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
-            || e.target.getBoundingClientRect().left - (nuevoMargen - parseInt(getComputedStyle(e.target).marginRight)) < leftHandle.right + max * 2) {
+            || objeto.getBoundingClientRect().left - (nuevoMargen - parseInt(getComputedStyle(objeto).marginRight)) < leftHandle.right + max * 2) {
                 return;
             }
-            e.target.style.marginRight = nuevoMargen;
+            objeto.style.marginRight = nuevoMargen;
             campo = document.querySelector('#criterios .importe input:nth-of-type(2)');
         }
         var recorrido = slider.width - ancho;
-        var posicion = e.target.getBoundingClientRect().left - slider.left;
+        var posicion = objeto.getBoundingClientRect().left - slider.left;
         var nuevoImporte = minImporte + (maxImporte - minImporte) * posicion / recorrido;
         if (nuevoImporte < 1) {
             campo.value = nuevoImporte.toLocaleString('es-ES', { maximumFractionDigits: 2 });
         } else {
-            campo.value = 10 * Math.trunc(nuevoImporte / 10) + (e.target.id == 'right' ? 10 : 0);
+            campo.value = 10 * Math.trunc(nuevoImporte / 10) + (objeto.id == 'right' ? 10 : 0);
         }
-        e.target.innerHTML = campo.value;
-        e.target.appendChild(curr);
+        objeto.innerHTML = campo.value;
+        objeto.appendChild(curr);
     }
 }
  
 function soltarImporte(e) {
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('handle')) {
+        objeto = objeto.parentNode;
+    }
     e.preventDefault();
+
     dragImporteStart = {};
     filtrarPorImporte();
+}
+
+function arranqueDrag(e, objeto) {
+
+    var margen = 0;
+    if (objeto.id == 'desde' && !isNaN(parseInt(objeto.style.marginLeft))) {
+        margen = -1 * parseInt(objeto.style.marginLeft);
+    }
+    if (objeto.id == 'hasta' && !isNaN(parseInt(objeto.style.marginRight))) {
+        margen = parseInt(objeto.style.marginRight);
+    }
+    var punto = e.clientX;
+    if (e.type == 'touchstart' && e.touches) {
+        punto = e.touches[0].clientX;
+    } else if (e.type == 'touchend' && e.changedTouches) {
+        punto = e.changedTouches[0].clientX;
+    }
+
+    return margen + punto;
+}
+
+function agarrarFecha(e) {
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('fecha')) {
+        objeto = objeto.parentNode;
+    }
+    dragStart = e.clientX;
+    if (e.touches) {
+        dragStart = e.touches[0].clientX;
+    }
+    dragFechaStart[objeto.id] = arranqueDrag(e, objeto);
+
+    e.preventDefault();
+}
+
+function moverFecha(e) {
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('fecha')) {
+        objeto = objeto.parentNode;
+    }
+    e.preventDefault();
+
+    if (objeto.id in dragFechaStart
+    && dragFechaStart[objeto.id] > 0) {
+        var punto = e.clientX;
+        if (e.touches) {
+            punto = e.touches.item(0).clientX;
+        }
+        var campo = document.querySelector('#criterios input[type="date"]:nth-of-type(1)');
+        var slider = document.querySelector('.fechas').getBoundingClientRect();
+        var leftHandle = document.querySelector('#desde.fecha').getBoundingClientRect();
+        var rightHandle = document.querySelector('#hasta.fecha').getBoundingClientRect();
+        var ancho = objeto.getBoundingClientRect().width;
+        var max = 1.5 * window.innerWidth / 100; // 1.5vw
+        if (objeto.id == 'desde') {
+            var nuevoMargen = punto - dragFechaStart[objeto.id];
+            if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
+            || objeto.getBoundingClientRect().right + (nuevoMargen - parseInt(getComputedStyle(objeto).marginLeft)) > rightHandle.left - max * 2) {
+                return;
+            }
+            objeto.style.marginLeft = nuevoMargen;
+        }
+        if (objeto.id == 'hasta') {
+            var nuevoMargen = dragFechaStart[objeto.id] - punto;
+            if (nuevoMargen < max || nuevoMargen > slider.width - ancho - max
+            || objeto.getBoundingClientRect().left - (nuevoMargen - parseInt(getComputedStyle(objeto).marginRight)) < leftHandle.right + max * 2) {
+                return;
+            }
+            objeto.style.marginRight = nuevoMargen;
+            campo = document.querySelector('#criterios input[type="date"]:nth-of-type(2)');
+        }
+
+        var recorrido = slider.width - ancho;
+        var posicion = objeto.getBoundingClientRect().left - slider.left;
+        var nuevoFecha = new Date();
+        nuevoFecha.setTime(minFecha.getTime() + (maxFecha.getTime() - minFecha.getTime()) * posicion / recorrido);
+        cambiarFechaHoja(objeto, nuevoFecha);
+    }
+}
+ 
+function soltarFecha(e) {
+
+    var objeto = e.target;
+    while (!objeto.classList.contains('fechas')) {
+        objeto = objeto.parentNode;
+    }
+
+    objeto = objeto.querySelector('#' + Object.keys(dragFechaStart)[0]);
+    e.preventDefault();
+
+    var dragEnd = e.clientX;
+    if (e.changedTouches) {
+        dragEnd = e.changedTouches[0].clientX;
+    }
+
+    if (dragEnd == dragStart) { // Tap (click) en lugar de Drag
+        var picker = objeto.querySelector('input');
+        picker.focus();
+    }
+
+    dragFechaStart = {};
+    filtrarPorFechas();
 }
 
 function actualizarLimites(abonos, cargos) {
@@ -427,14 +569,15 @@ function seleccionBotonesImporte(e) {
 function hojaCalendario(fecha) {
     var hoja = document.createElement('div');
     hoja.classList.add('fecha');
+    hoja.setAttribute('fecha', fecha.toISOString().slice(0, 10));
     var mes = document.createElement('span');
     mes.innerText = fecha.toLocaleString('es-ES', { month: 'short'});
     hoja.appendChild(mes);
     var anyo = document.createElement('span');
-    anyo.innerText = fecha.toLocaleString('es-ES', { year: 'numeric'});
+    anyo.innerText = fecha.toLocaleString('es-ES', { year: '2-digit'});
     hoja.appendChild(anyo);
     var dia = document.createElement('span');
-    if (fecha.toISOString().slice(0, 10) == new Date().toISOString().slice(0, 10)) {
+    if (hoja.getAttribute('fecha') == new Date().toISOString().slice(0, 10)) {
         dia.innerText = 'hoy';
         dia.classList.add('hoy');
     } else {
@@ -444,12 +587,8 @@ function hojaCalendario(fecha) {
     hoja.appendChild(dia);
     var picker = document.createElement('input');
     picker.type = 'date';
-    picker.value = fecha.toISOString().slice(0, 10);
-    picker.max = new Date().toISOString().slice(0, 10);
+    picker.value = hoja.getAttribute('fecha');
     hoja.appendChild(picker);
-    hoja.addEventListener('click', function(e) {
-        picker.focus();
-    });
     picker.addEventListener('change', cambiarFecha);
     return hoja;
 }
@@ -457,19 +596,46 @@ function hojaCalendario(fecha) {
 function cambiarFecha(e) {
     var hoja = e.target.parentNode;
     var fecha = new Date(e.target.value);
+    console.log('Cambiado a: ' + fecha.toDateString());
     var desde = new Date(hoja.parentNode.querySelector('.fecha:first-of-type input').value);
     var hasta = new Date(hoja.parentNode.querySelector('.fecha:last-of-type input').value);
     var dia = hoja.querySelector('span:nth-of-type(3)');
     if (desde > hasta) {
-        alert('La fecha de inicio no puede ser posterior a la fecha de fin');
-        e.target.value = new Date().toISOString().slice(0, 10);
-        return;
+        fecha.setMonth(11);
+        if (desde > fecha) {
+            fecha.setTime(desde.getTime());
+        }
     } else if (fecha > new Date()) {
-        alert('No te preocupes que aún no adivino movimientos futuros');
-        e.target.value = new Date().toISOString().slice(0, 10);
-        dia.innerText = 'hoy';
-        dia.classList.add('hoy');
-    } else if (fecha.toISOString().slice(0, 10) == new Date().toISOString().slice(0, 10)) {
+        fecha.setMonth(0);
+        console.log('Enero: ' + fecha.toDateString());
+        hoja.querySelector('input').value = '1999-04-25';
+        if (fecha > new Date()) {
+            fecha = new Date();
+        }
+    }
+    cambiarFechaHoja(hoja, fecha);
+    filtrarPorFechas();
+    var slider = document.querySelector('.fechas').getBoundingClientRect();
+    var ancho = hoja.getBoundingClientRect().width;
+    var recorrido = slider.width - ancho;
+    var posicion = hoja.getBoundingClientRect().left - slider.left;
+    if (hoja.id == 'desde') {
+        var diff = hasta.getTime() - fecha.getTime();
+        var nuevoRango = diff * recorrido / (recorrido - posicion);
+        minFecha.setTime(hasta.getTime() - nuevoRango);
+    }
+    if (hoja.id == 'hasta') {
+        var diff = fecha.getTime() - desde.getTime();
+        var nuevoRango = diff * recorrido / posicion;
+        maxFecha.setTime(desde.getTime() + nuevoRango);
+    }
+}
+
+function cambiarFechaHoja(hoja, fecha) {
+    hoja.setAttribute('fecha', fecha.toISOString().slice(0, 10));
+    hoja.querySelector('input').value = hoja.getAttribute('fecha');
+    var dia = hoja.querySelector('span:nth-of-type(3)');
+    if (hoja.getAttribute('fecha') == new Date().toISOString().slice(0, 10)) {
         dia.innerText = 'hoy';
         dia.classList.add('hoy');
     } else {
@@ -477,8 +643,13 @@ function cambiarFecha(e) {
         dia.classList.remove('hoy');
     }
     hoja.querySelector('span:nth-of-type(1)').innerText = fecha.toLocaleString('es-ES', { month: 'short'});
-    hoja.querySelector('span:nth-of-type(2)').innerText = fecha.toLocaleString('es-ES', { year: 'numeric'});
-    filtrarPorFechas();
+    hoja.querySelector('span:nth-of-type(2)').innerText = fecha.toLocaleString('es-ES', { year: '2-digit'});
+    if (hoja.id == 'desde') {
+        hoja.parentNode.querySelector('#hasta input').min = hoja.getAttribute('fecha');
+    }
+    if (hoja.id == 'hasta') {
+        hoja.parentNode.querySelector('#desde input').max = hoja.getAttribute('fecha');
+    }
 }
 
 function cambiarImporte(e) {
