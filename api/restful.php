@@ -241,14 +241,19 @@ class bancaAPI extends API {
       $query .= " AND T.id = " . $filtros->categoria;
     }
     if (isset($filtros->fecha)) {
-      $query .= " AND M.fecha >= '" . $filtros->fecha->desde . "' AND M.fecha <= '" . $filtros->fecha->hasta . "'";
+      if (isset($filtros->fecha[0])) {
+        $query .= " AND M.fecha >= '" . $filtros->fecha[0] . "'";
+      }
+      if (isset($filtros->fecha[1])) {
+        $query .= " AND M.fecha <= '" . $filtros->fecha[1] . "'";
+      }
     }
     if (isset($filtros->importe)) {
-      if (isset($filtros->importe->entre)) {
-        $query .= " AND ABS(M.importe) >= " . $filtros->importe->entre;
+      if (isset($filtros->importe[0])) {
+        $query .= " AND ABS(M.importe) >= " . $filtros->importe[0];
       }
-      if (isset($filtros->importe->y)) {
-        $query .= " AND ABS(M.importe) <= " . $filtros->importe->y;
+      if (isset($filtros->importe[1])) {
+        $query .= " AND ABS(M.importe) <= " . $filtros->importe[1];
       }
     }
     if (isset($filtros->concepto) && strlen($filtros->concepto) > 0) {
