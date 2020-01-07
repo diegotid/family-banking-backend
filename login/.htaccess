@@ -1,8 +1,7 @@
-DirectoryIndex  index.php
 AuthType		Basic
-AuthUserFile	/Users/Diego/Dropbox/Web/products/banca/login/.htpasswd
+AuthUserFile	/var/www/diegorivera.com.es/.htpasswd
 AuthName		"Banca online Diego Rivera"
-Order		    Deny,Allow
+Order		Deny,Allow
 Deny			from all
-Satisfy		    any
-Require		    valid-user
+Satisfy		any
+Require		valid-user
