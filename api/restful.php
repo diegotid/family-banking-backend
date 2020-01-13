@@ -241,26 +241,26 @@ class bancaAPI extends API {
       $query .= " AND T.id = " . $filtros->categoria;
     }
     if (isset($filtros->fecha)) {
-      if (isset($filtros->fecha[0])) {
-        $query .= " AND M.fecha >= '" . $filtros->fecha[0] . "'";
+      if (isset($filtros->fecha->desde)) {
+        $query .= " AND M.fecha >= '" . $filtros->fecha->desde . "'";
       }
-      if (isset($filtros->fecha[1])) {
-        $query .= " AND M.fecha <= '" . $filtros->fecha[1] . "'";
+      if (isset($filtros->fecha->hasta)) {
+        $query .= " AND M.fecha <= '" . $filtros->fecha->hasta . "'";
       }
     }
     if (isset($filtros->importe)) {
-      if (isset($filtros->importe[0])) {
-        $query .= " AND ABS(M.importe) >= " . $filtros->importe[0];
+      if (isset($filtros->importe->desde)) {
+        $query .= " AND ABS(M.importe) >= " . $filtros->importe->desde;
       }
-      if (isset($filtros->importe[1])) {
-        $query .= " AND ABS(M.importe) <= " . $filtros->importe[1];
+      if (isset($filtros->importe->hasta)) {
+        $query .= " AND ABS(M.importe) <= " . $filtros->importe->hasta;
+      }
+      if (isset($filtros->importe->tipo)) {
+        $query .= " AND M.importe " . ($filtros->importe->tipo == 'abonos' ? '>' : '<') . " 0";
       }
     }
     if (isset($filtros->concepto) && strlen($filtros->concepto) > 0) {
       $query .= " AND LOWER(M.descripcion) LIKE '%" . strtolower($filtros->concepto) . "%'";
-    }
-    if (isset($filtros->tipo)) {
-      $query .= " AND M.importe " . ($filtros->tipo == 'abono' ? '>' : '<') . " 0";
     }
 
     return $query;
