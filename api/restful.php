@@ -76,9 +76,12 @@ class bancaAPI extends API {
   
       $total = 0;
       $lista = [];
-      $filtros = json_decode(urldecode($this->request['q']));
-      
-      $condiciones = $this->condiciones($filtros);
+      if (isset($this->request['q'])) {
+        $filtros = json_decode(urldecode($this->request['q']));
+        $condiciones = $this->condiciones($filtros);
+      } else {
+        $condiciones = " TRUE";
+      }
       $condiciones .= " AND M.fecha > (CURRENT_DATE - INTERVAL 1 MONTH)";
 
       $query = "SELECT T.id id, T.nombre nombre, COUNT(*) numero
