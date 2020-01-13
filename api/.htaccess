@@ -1,7 +1,0 @@
-AuthType		Basic
-AuthUserFile	/Users/Diego/Dropbox/Web/products/banca/login/.htpasswd
-AuthName		"Banca online Diego Rivera"
-Order		    Deny,Allow
-Deny			from all
-Satisfy		    any
-Require		    valid-user
