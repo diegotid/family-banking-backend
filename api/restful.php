@@ -177,9 +177,15 @@ class bancaAPI extends API {
                   JOIN CUENTA C ON M.cuenta = C.id
                   JOIN BANCO B ON C.banco = B.id
                   JOIN CATEGORIA T ON categoria = T.id
-                  WHERE " . $condiciones;
-        $result = $con->query($query);
+                  WHERE ";
+        $result = $con->query($query . $condiciones);
         $resultado['resumen'] = $result->fetch_assoc();
+        if (!$resultado['resumen']['total']) {
+          $condiciones = $this->condiciones($filtros);
+          $condiciones .= " LIMIT 20";
+          $result = $con->query($query . $condiciones);
+          $resultado['resumen'] = $result->fetch_assoc();
+        }
       }
 
       return array('status' => 200, 'movimientos' => $resultado);
