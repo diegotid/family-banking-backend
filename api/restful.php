@@ -1,23 +1,30 @@
 <?php
-include '../conf/db.php';
+require_once '../conf/db.php';
+require_once '../conf/auth.php';
 require_once 'API.class.php';
 
 class bancaAPI extends API {
 
   protected function login() {
 
-    if ($this->method == 'PUT') {
-      return array('status' => 200, 'token' => $this->token);
+    global $access_password;
+
+    if ($this->method == 'POST' && $this->file
+    && md5(json_decode($this->file)->password) === md5($access_password)) {
+      return array('status' => 200, 'token' => md5($access_password));
+    } else {
+      return array('error' => 401, 'message' => 'Unauthorized');
     }
   }
 
   protected function cuentas() {
 
     global $con;
+    global $access_password;
     
     if ($this->method == 'GET') {
       
-      if (!isset($this->token)) {
+      if (!isset($this->token) || $this->token != md5($access_password)) {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
   
@@ -47,7 +54,7 @@ class bancaAPI extends API {
 
     } else if ($this->method == 'PUT') {
 
-      if (!isset($this->token)) {
+      if (!isset($this->token) || $this->token != md5($access_password)) {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
   
@@ -67,10 +74,11 @@ class bancaAPI extends API {
   protected function categorias() {
 
     global $con;
+    global $access_password;
     
     if ($this->method == 'GET') {
       
-      if (!isset($this->token)) {
+      if (!isset($this->token) || $this->token != md5($access_password)) {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
   
@@ -117,10 +125,11 @@ class bancaAPI extends API {
   protected function movimientos() {
     
     global $con;
+    global $access_password;
 
     if ($this->method == 'GET') {
 
-      if (!isset($this->token)) {
+      if (!isset($this->token) || $this->token != md5($access_password)) {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
   
@@ -195,12 +204,14 @@ class bancaAPI extends API {
   protected function limites() {
     
     global $con;
+    global $access_password;
 
     if ($this->method == 'GET') {
 
-      if (!isset($this->token)) {
+      if (!isset($this->token) || $this->token != md5($access_password)) {
         return array('error' => 401, 'message' => 'Unauthorized');
       }
+
       $filtros = json_decode(urldecode($this->request['q']));
       $condiciones = $this->condiciones($filtros);
 
@@ -237,7 +248,7 @@ class bancaAPI extends API {
 
     $query = "TRUE";
 
-    error_log(print_r($filtros, true));
+    // error_log(print_r($filtros, true));
 
     if (isset($filtros->cuentas) && count($filtros->cuentas)) {
       $query .= " AND (FALSE";

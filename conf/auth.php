@@ -2,4 +2,5 @@
 $afterbanks_token = 'mbHO6CN9qnXvOpIyvKjUan0vOVjkUQ2YpmfQ5QpFcOXrL2Yft1rr8kKhDBhyRRr1XFKGxttqLvmJAshh6WBRHHG0VtzT9JqGKK3WO9f44AOHA9kgRjBNhZtDVvOwOtzjp5z97L4SRXQggUI6RTdS5tZrRdn5yBOMUJWTzLTPrtQbCkH1MnNRSxgaRXq8Qp2ILfBVO6UY0gaTUHzcE2BQkfsSWbbrQ8RTdnqT5bcdOTKG8JRVI24Tymm5fNHSMqB';
 $pushover_token = 'aj8no7ovf67imkcyd74szygaxrt53m';
 $pushover_recipient = 'uiqajcj56tenw3ph4pz15qkv9c32vy';
+$access_password = 'b0zc0ch0'
 ?>
