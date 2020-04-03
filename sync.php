@@ -4,6 +4,8 @@ require_once 'conf/db.php';
 require_once 'conf/auth.php';
 
 function sendPush($message) {
+    global $pushover_token;
+	global $pushover_recipient;
     curl_setopt_array($ch = curl_init(), array(
         CURLOPT_URL => "https://api.pushover.net/1/messages.json",
         CURLOPT_POSTFIELDS => array(
