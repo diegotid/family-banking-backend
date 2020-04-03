@@ -100,7 +100,7 @@ while (true) {
                 if ($con->affected_rows > 0) {
                     $total += $con->affected_rows;
                     $amount = number_format(abs(floatval($transfer->amount)), 2, ',', '.');
-                    if (floatval($transfer->amount) < -38.5) {
+                    if ($cuenta == 2 || floatval($transfer->amount) < -150) {
                         sendPush('Adeudo de ' . $amount . ' € - ' . $transfer->description);
                     }
                     if (floatval($transfer->amount) > 1) {
