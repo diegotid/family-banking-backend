@@ -4,6 +4,8 @@
 // require_once 'conf/auth.php';
 
 function sendPush($message) {
+    global $pushover_token;
+	global $pushover_recipient;
     curl_setopt_array($ch = curl_init(), array(
         CURLOPT_URL => "https://api.pushover.net/1/messages.json",
         CURLOPT_POSTFIELDS => array(
@@ -136,7 +138,7 @@ while (true) {
                 if ($con->affected_rows > 0) {
                     $total += $con->affected_rows;
                     $amount = number_format(abs(floatval($transfer->amount)), 2, ',', '.');
-                    if (floatval($transfer->amount) < -38.5) {
+                    if ($cuenta == 2 || floatval($transfer->amount) < -150) {
                         sendPush('Adeudo de ' . $amount . ' € - ' . $transfer->description);
                     }
                     if (floatval($transfer->amount) > 1) {
