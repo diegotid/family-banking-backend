@@ -1,7 +1,7 @@
 <?php
 
-require_once 'conf/db.php';
-require_once 'conf/auth.php';
+// require_once 'conf/db.php';
+// require_once 'conf/auth.php';
 
 function sendPush($message) {
     curl_setopt_array($ch = curl_init(), array(
@@ -22,6 +22,44 @@ if (isset($_GET['banco'])) $bancosel = $_GET['banco'];
 if (isset($_GET['fecha'])) $fechasel = $_GET['fecha'];
 
 $now = new DateTime();
+
+$ch = curl_init();
+$url = 'https://www1.ibercajadirecto.com/ibercaja/asp/Login.asp';
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+$formHTML = curl_exec($ch);
+curl_close($ch);
+$formDOM = new DOMDocument();
+$formDOM->loadHTML($formHTML, LIBXML_NOWARNING | LIBXML_NOERROR);
+
+$inputs = $formDOM->getElementsByTagName('input');
+
+foreach ($inputs as $input) {
+    if ($input->getAttribute('name') === "ID") {
+        $formID = $input->getAttribute('value');
+        break;
+    }
+}
+
+$ch = curl_init();
+$url = 'https://www1.ibercajadirecto.com/ibercaja/asp/Modulodirector.Asp?codidentific=9006671&f1=250499&maquina=-&IdOperacion=0001_0&Dispositivo=INTR&Canal=IBE&Idioma=ES&Entidad=2085&Entorno=ID&ValidacionPin=S&pagina=ID&EsExterno=0&ID=' . $formID;
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+$formHTML = curl_exec($ch);
+curl_close($ch);
+
+$authPos = strrpos($formHTML, "MSCSAuth");
+$authKey = substr($formHTML, $authPos + 9, 250);
+$authEnd = strrpos($authKey, "&");
+$authKey = substr($authKey, 0, $authEnd + 1);
+echo $authKey;
+
+echo "\n";
+return;
 
 if (!isset($bancosel) && !isset($fechasel)) {
     $result = $con->query("SELECT MAX(fecha) ultimo FROM MOVIMIENTO");
