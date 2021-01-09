@@ -31,3 +31,84 @@ function IrA(pstrDireccion,pstrOperacion,opcionseleccionada)
 	document.Formulario.target = "operativas";
 	document.Formulario.submit(); 
 }
+
+function ValidarDatos3(mensaje1, mensaje2 , mensaje3,mensaje4,ticket,mensaje5)
+{
+	
+	var diaInicio;
+	var mesInicio;
+	var anoInicio;
+	var diaFin;
+	var mesFin;
+	var anoFin;
+
+	var importeMin;
+	var importeMax;	
+	
+
+	diaInicio = document.Formulario.FechaInicioDia.value;
+	mesInicio= document.Formulario.FechaInicioMes.value;
+	anoInicio=  document.Formulario.FechaInicioAno.value;
+
+
+	diaFin= document.Formulario.FechaFinDia.value;
+	mesFin= document.Formulario.FechaFinMes.value;
+	anoFin= document.Formulario.FechaFinAno.value;
+	
+
+	importeMin = document.Formulario.ImporteMinimo.value.replace(",",".");
+	importeMax = document.Formulario.ImporteMaximo.value.replace(",",".");
+	importeMin  = parseFloat(importeMin ) * 100;
+	importeMax = parseFloat(importeMax) * 100;
+	if(importeMin > 0 && importeMax > 0)
+	{
+		if(importeMin > importeMax)
+		{
+			document.Formulario.ImporteMinimo.focus();
+			document.Formulario.ImporteMinimo.select();
+			alert(mensaje5);
+			return false;	
+		}
+	}
+	
+	if ( (diaInicio + mesInicio + anoInicio).length < 8 )
+	{
+		alert(mensaje4);
+		return false;		
+	}
+		
+	if ( (diaInicio + mesInicio + anoInicio).length > 2)
+		if (!validar_fecha(diaInicio , mesInicio , anoInicio ))
+		{
+			alert(mensaje1);
+			return false;
+		}
+	if ((diaFin + mesFin + anoFin).length != 0){
+		if ((diaFin + mesFin + anoFin).length < 8){
+			alert("El campo Fecha Hasta está incompleto");
+			return false;				
+		}else{
+			if (!validar_fecha(diaFin , mesFin , anoFin ))
+			{
+				alert("Fecha Hasta incorrecta");
+				return false;		
+			}
+		}
+		
+	}
+	if ( (diaInicio + mesInicio + anoInicio).length > 2 && (diaFin + mesFin + anoFin).length > 2)
+		if (CompararFechas(diaInicio + mesInicio + anoInicio, diaFin + mesFin + anoFin) == 1)
+		{
+			alert(mensaje3);
+			return false;
+		}
+	
+		
+	cont = cont + 1;
+	if (cont > 1) {
+		return false;
+	}else{
+			
+		lanzapagina(ticket);
+	}
+}
