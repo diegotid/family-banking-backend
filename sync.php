@@ -110,14 +110,7 @@ foreach ($dataTable->childNodes as $row) {
 
         $con->query("INSERT INTO MOVIMIENTO (hash, fecha, cuenta, importe, descripcion) VALUES ('{$hash}', '{$date}', 1, {$amount}, '{$mov[0]}')");
         if ($con->affected_rows > 0) {
-            $amount = number_format(abs(floatval($amount)), 2, ',', '.');
-            sendPush((floatval($amount) < 0 ? 'Adeudo' : 'Abono') . ' de ' . $amount . ' € - ' . $mov[0]);
-            // if ($cuenta == 2 || floatval($amount) < -150) {
-            //     sendPush('Adeudo de ' . $amount . ' € - ' . $transfer->description);
-            // }
-            // if (floatval($transfer->amount) > 1) {
-            //     sendPush('Abono de ' . $amount . ' € - ' . $transfer->description);
-            // }
+            sendPush((floatval($amount) < 0 ? 'Adeudo' : 'Abono') . ' de ' . number_format(abs(floatval($amount)), 2, ',', '.') . ' € - ' . $mov[0]);
         }
     }
 }
