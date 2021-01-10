@@ -143,7 +143,7 @@ class bancaAPI extends API {
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
-                JOIN CATEGORIA T ON categoria = T.id
+                LEFT JOIN CATEGORIA T ON categoria = T.id
                 WHERE " . $this->condiciones($filtros) . "
                 ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
