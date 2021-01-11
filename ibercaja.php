@@ -76,7 +76,6 @@ foreach (IBERCAJA as $id => $account) {
             . 'FechaInicioMes=' . $from->format('m') . '&'
             . 'FechaInicioAno=' . $from->format('Y') . '&'
             . 'AbonoCargo=T&MSCSAuth=' . $authKey;
-    echo $url . "<br>";
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -108,7 +107,7 @@ foreach (IBERCAJA as $id => $account) {
                 continue;
             }
             $date = $fvalor->format('Y-m-d');
-            echo $date . "<br>";
+            $balance = str_replace(array('.', ','), array('', '.'), $mov[5]);
 
             $hash = md5(implode('', $mov));
             $hash = substr($hash, 12)
@@ -126,10 +125,9 @@ foreach (IBERCAJA as $id => $account) {
             if ($con->affected_rows > 0) {
                 $total++;
                 sendPush((floatval($amount) < 0 ? 'Adeudo' : 'Abono') . ' de ' . number_format(abs(floatval($amount)), 2, ',', '.') . ' € - ' . $mov[0]);
-            } else {
-                echo $con->error . "<br>";
             }
         }
     }
+    $con->query("UPDATE CUENTA SET balance = {$balance} WHERE id = {$id}");
 }
 ?>
