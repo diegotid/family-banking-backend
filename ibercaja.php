@@ -109,7 +109,7 @@ foreach (IBERCAJA as $id => $account) {
             $date = $fvalor->format('Y-m-d');
             $balance = str_replace(array('.', ','), array('', '.'), $mov[5]);
 
-            $hash = md5(implode('', $mov));
+            $hash = md5(implode('', array_slice($mov, 1, 5)));
             $hash = substr($hash, 12)
                     . implode('', explode('/', $mov[1]))
                     . implode('', explode('/', $mov[2]));
