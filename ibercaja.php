@@ -43,7 +43,7 @@ foreach ($inputs as $input) {
 }
 
 $ch = curl_init();
-$url = 'https://www1.ibercajadirecto.com/ibercaja/asp/Modulodirector.Asp?codidentific=9006671&f1=250499&maquina=-&IdOperacion=0001_0&Dispositivo=INTR&Canal=IBE&Idioma=ES&Entidad=2085&Entorno=ID&ValidacionPin=S&pagina=ID&EsExterno=0&ID=' . $formID;
+$url = 'https://www1.ibercajadirecto.com/ibercaja/asp/Modulodirector.Asp?codidentific=' . $id_document . '&f1=' . $access_pin . '&maquina=-&IdOperacion=0001_0&Dispositivo=INTR&Canal=IBE&Idioma=ES&Entidad=2085&Entorno=ID&ValidacionPin=S&pagina=ID&EsExterno=0&ID=' . $formID;
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); 
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

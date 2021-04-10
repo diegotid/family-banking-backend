@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.6
+    container_name: docker-mysql
+    environment:
+      MYSQL_DATABASE: family_banking
+      MYSQL_USER: yourusername
+      MYSQL_PASSWORD: yourpassword
+      MYSQL_ROOT_PASSWORD: yourpassword
+    ports:
+      - "3306:3306"
+    restart: always
+    
+  web:
+    image: php:7.3-apache
+    build: .
+    container_name: docker-php
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+    links:
+      - mysql

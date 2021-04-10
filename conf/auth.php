@@ -1,15 +1,15 @@
 <?php
+$id_document = 'yourid';
+$access_pin = 'yourpin';
 const IBERCAJA = [
-    1 => "20858094160330166906", // Nómina
-    2 => "20858225040330078908" // Niños
+    1 => "20859999009999999999", // Mock Ibercaja account #1
+    2 => "20850000990000000000" // Mock Ibercaja account #2
 ];
 const AFTERBANKS = [
-    5 => 70543, // Cuenta Naranja ING Direct
-    4 => 100914, // Tarjeta VIA-T Ibercaja
-    6 => 100913, // Tarjeta VISA Diego
+    3 => 999999, // Mock Afterbanks account
 ];
-$afterbanks_token = 'mbHO6CN9qnXvOpIyvKjUan0vOVjkUQ2YpmfQ5QpFcOXrL2Yft1rr8kKhDBhyRRr1XFKGxttqLvmJAshh6WBRHHG0VtzT9JqGKK3WO9f44AOHA9kgRjBNhZtDVvOwOtzjp5z97L4SRXQggUI6RTdS5tZrRdn5yBOMUJWTzLTPrtQbCkH1MnNRSxgaRXq8Qp2ILfBVO6UY0gaTUHzcE2BQkfsSWbbrQ8RTdnqT5bcdOTKG8JRVI24Tymm5fNHSMqB';
-$pushover_token = 'aj8no7ovf67imkcyd74szygaxrt53m';
-$pushover_recipient = 'uiqajcj56tenw3ph4pz15qkv9c32vy';
-$access_password = 'ca11aca11a'
+$afterbanks_token = 'yourtoken';
+$pushover_token = 'yourtoken';
+$pushover_recipient = 'yourrecipient';
+$access_password = 'yourpassword'
 ?>
