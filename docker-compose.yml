@@ -11,6 +11,8 @@ services:
       MYSQL_ROOT_PASSWORD: yourpassword
     ports:
       - "3306:3306"
+    volumes:
+      - ./mock:/docker-entrypoint-initdb.d
     restart: always
     
   web:
