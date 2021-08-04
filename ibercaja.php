@@ -28,6 +28,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Referer: https://identidad.ibercaja.es/soporte/plataforma/identidad/api/v1/Account/Login'));
 $formHTML = curl_exec($ch);
 curl_close($ch);
 $formDOM = new DOMDocument();
