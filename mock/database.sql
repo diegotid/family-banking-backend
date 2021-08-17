@@ -107,6 +107,7 @@ CREATE TABLE `CUENTA` (
   `balance` decimal(13,2) DEFAULT NULL,
   `descripcion` varchar(128) DEFAULT NULL,
   `color` varchar(6) DEFAULT NULL,
+  `tarjeta` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `FK_CUENTA_BANCO` (`banco`),
   CONSTRAINT `FK_CUENTA_BANCO` FOREIGN KEY (`banco`) REFERENCES `BANCO` (`id`)
@@ -115,14 +116,14 @@ CREATE TABLE `CUENTA` (
 LOCK TABLES `CUENTA` WRITE;
 /*!40000 ALTER TABLE `CUENTA` DISABLE KEYS */;
 
-INSERT INTO `CUENTA` (`id`, `nombre`, `codigo`, `banco`, `balance`, `descripcion`, `color`)
+INSERT INTO `CUENTA` (`id`, `nombre`, `codigo`, `tarjeta`, `banco`, `balance`, `descripcion`, `color`)
 VALUES
-	(1,'Payroll','20858094160330166906',1,8712.28,'20858094160330166906-Payroll','1e8bb0'),
-	(2,'Saving','20858225040330078908',1,34197.19,'20858225040330078908-NiÃ±os','25d5a1'),
-	(3,'VISA card','492163******0167-Credito',1,0.00,'492163******0167-Credito','513c55'),
-	(4,'VIA-T toll card','502213******8107-VIA T',1,0.00,'502213******8107-VIA T','ed4a71'),
-	(5,'ING Direct','14650100972094520203',2,11309.31,'Cuenta NARANJA','fe7c0c'),
-	(6,'VISA debt card','492163******0778-VISA',1,5.90,'492163******0778-VISA','F1B7B4');
+	(1,'Payroll','20858094160330166906',0,1,8712.28,'20858094160330166906-Payroll','1e8bb0'),
+	(2,'Saving','20858225040330078908',0,1,34197.19,'20858225040330078908-NiÃ±os','25d5a1'),
+	(3,'VISA card','492163******0167-Credito',1,1,0.00,'492163******0167-Credito','513c55'),
+	(4,'VIA-T toll card','502213******8107-VIA T',1,1,0.00,'502213******8107-VIA T','ed4a71'),
+	(5,'ING Direct','14650100972094520203',0,2,11309.31,'Cuenta NARANJA','fe7c0c'),
+	(6,'VISA debt card','492163******0778-VISA',1,1,5.90,'492163******0778-VISA','F1B7B4');
 
 /*!40000 ALTER TABLE `CUENTA` ENABLE KEYS */;
 UNLOCK TABLES;

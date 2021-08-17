@@ -30,13 +30,14 @@ class bancaAPI extends API {
       }
       $total = 0;
       $lista = [];
-      $result = $con->query("SELECT C.id id, logo, C.nombre name, C.color color, descripcion, balance
+      $result = $con->query("SELECT C.id id, logo, C.nombre name, C.tarjeta tarjeta, C.color color, descripcion, balance
                             FROM CUENTA C JOIN BANCO B ON C.banco = B.id ORDER BY id");
       while ($cuenta = $result->fetch_assoc()) {
         $cuenta['id'] = intval($cuenta['id']);
         if (!isset($cuenta['name'])) {
           $cuenta['name'] = $cuenta['descripcion'];
         }
+        $cuenta['tarjeta'] = intval($cuenta['tarjeta']);
         unset($cuenta['descripcion']);
         if (isset($cuenta['balance'])) {
           $cuenta['balance'] = round(floatval($cuenta['balance']), 2);
