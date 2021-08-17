@@ -115,6 +115,7 @@ class bancaAPI extends API {
         unset($movimiento['id_cuenta']);
         array_push($movimientos, $movimiento);
       }
+      if ($from > $through) $through = $from;
       $resultado = [];
       $resultado['lista'] = $movimientos;
       $resultado['resumen'] = [];
