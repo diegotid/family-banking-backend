@@ -132,7 +132,14 @@ class bancaAPI extends API {
     $query = "TRUE";
 
     if (isset($this->request['account'])) {
-      $query .= " AND C.id = " . $this->request['account'];
+      $accounts = explode(',', $this->request['account']);
+      if (count($accounts) > 0) {
+        $query .= " AND (FALSE";
+        foreach ($accounts as $account) {
+          $query .= " OR C.id = " . $account;
+        }
+        $query .= ")";
+      }
     }
 
     return $query;
