@@ -77,6 +77,9 @@ class bancaAPI extends API {
                 ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
       $result = $con->query($query);
+      if ($con->error) {
+        return array('status' => 500, 'error' => $con->error);
+      }
 
       $total = 0;
       $from = new DateTime();
@@ -140,6 +143,11 @@ class bancaAPI extends API {
         }
         $query .= ")";
       }
+    }
+
+    if (isset($this->request['concept'])) {
+      $concept = $this->request['concept'];
+      $query .= " AND M.descripcion LIKE '%{$concept}%'";
     }
 
     return $query;
