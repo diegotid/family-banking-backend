@@ -150,6 +150,16 @@ class bancaAPI extends API {
       $query .= " AND M.descripcion LIKE '%{$concept}%'";
     }
 
+    if (isset($this->request['from'])) {
+      $from = $this->request['from'];
+      $query .= " AND M.fecha >= '{$from}'";
+    }
+
+    if (isset($this->request['until'])) {
+      $until = $this->request['until'];
+      $query .= " AND M.fecha <= '{$until}'";
+    }
+
     return $query;
   }
 }
