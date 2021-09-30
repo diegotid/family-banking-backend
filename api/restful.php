@@ -44,6 +44,8 @@ class bancaAPI extends API {
         }
         array_push($lista, $cuenta);
       }
+      $result->free();
+
       return array(
         'status' => 200,
         'total' => $total,
@@ -78,6 +80,8 @@ class bancaAPI extends API {
 
       $result = $con->query($query);
       if ($con->error) {
+        $result->free();
+
         return array('status' => 500, 'error' => $con->error);
       }
 
@@ -118,6 +122,8 @@ class bancaAPI extends API {
         unset($movimiento['id_cuenta']);
         array_push($movimientos, $movimiento);
       }
+      $result->free();
+
       if ($from > $through) $through = $from;
       $resultado = [];
       $resultado['lista'] = $movimientos;
