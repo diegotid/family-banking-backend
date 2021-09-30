@@ -17,6 +17,31 @@ class bancaAPI extends API {
     }
   }
 
+  protected function summary() {
+
+    global $con;
+    global $access_password;
+    
+    if ($this->method == 'GET') {
+      
+      if (!isset($this->token) || $this->token != md5($access_password)) {
+        return array('error' => 401, 'message' => 'Unauthorized');
+      }
+      $summary = [];
+      $result = $con->query("SELECT MIN(fecha) start FROM MOVIMIENTO");
+      $date = $result->fetch_assoc();
+      $result->free();
+      $summary['starting'] = $date['start'];
+
+      $result = $con->query("SELECT MIN(importe) min, MAX(importe) max FROM MOVIMIENTO");
+      $amount = $result->fetch_assoc();
+      $result->free();
+      $summary['amounts'] = array('min' => round(floatval($amount['min']), 2), 'max' => round(floatval($amount['max']), 2));
+
+      return array('status' => 200, 'summary' => $summary);
+    }
+  }
+
   protected function accounts() {
 
     global $con;
