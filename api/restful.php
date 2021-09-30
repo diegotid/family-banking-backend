@@ -160,6 +160,16 @@ class bancaAPI extends API {
       $query .= " AND M.fecha <= '{$until}'";
     }
 
+    if (isset($this->request['min'])) {
+      $min = $this->request['min'];
+      $query .= " AND M.importe >= '{$min}'";
+    }
+
+    if (isset($this->request['max'])) {
+      $max = $this->request['max'];
+      $query .= " AND M.importe <= '{$max}'";
+    }
+
     return $query;
   }
 }
