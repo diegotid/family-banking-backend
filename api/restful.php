@@ -201,6 +201,10 @@ class bancaAPI extends API {
       $query .= " AND M.importe <= '{$max}'";
     }
 
+    if (isset($this->request['payroll'])) {
+      $query .= " AND M.nomina IS TRUE";
+    }
+
     return $query;
   }
 }

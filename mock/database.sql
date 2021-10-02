@@ -141,6 +141,7 @@ CREATE TABLE `MOVIMIENTO` (
   `categoria` int(11) unsigned DEFAULT NULL,
   `importe` decimal(13,2) NOT NULL,
   `descripcion` varchar(256) DEFAULT NULL,
+  `nomina` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`hash`),
   KEY `FK_MOVIMIENTO_CUENTA` (`cuenta`),
   KEY `FK_MOVIMIENTO_CATEGORIA` (`categoria`),
