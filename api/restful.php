@@ -99,7 +99,7 @@ class bancaAPI extends API {
                 FROM MOVIMIENTO M
                 JOIN CUENTA C ON M.cuenta = C.id
                 JOIN BANCO B ON C.banco = B.id
-                LEFT JOIN CATEGORIA T ON categoria = T.id
+                LEFT JOIN CATEGORIA T ON categoria = T.id " . $this->perc() . "
                 WHERE " . $this->query() . "
                 ORDER BY fecha DESC LIMIT " . $offset . ", 20";
 
@@ -161,6 +161,22 @@ class bancaAPI extends API {
     }
   }
 
+  protected function perc() {
+
+    if (isset($this->request['month_perc'])) {
+      $perc = $this->request['month_perc'];
+      return "
+        LEFT JOIN
+        (SELECT YEAR(fecha) y, MONTH(fecha) m, MIN(importe) i FROM MOVIMIENTO
+        GROUP BY YEAR(fecha), MONTH(fecha)
+        ORDER BY YEAR(fecha), MONTH(fecha)) G
+        ON YEAR(M.fecha) = G.y AND MONTH(M.fecha) = G.m
+      ";
+    } else {
+      return "";
+    }
+  }
+
   protected function query() {
 
     $query = "TRUE";
@@ -203,6 +219,11 @@ class bancaAPI extends API {
 
     if (isset($this->request['payroll'])) {
       $query .= " AND M.nomina IS TRUE";
+    }
+
+    if (isset($this->request['month_perc'])) {
+      $perc = $this->request['month_perc'];
+      $query .= " AND importe < G.i * " . $perc;
     }
 
     return $query;
