@@ -226,6 +226,11 @@ class bancaAPI extends API {
       $query .= " AND importe < G.i * " . $perc;
     }
 
+    if (isset($this->request['abs_perc'])) {
+      $perc = $this->request['abs_perc'];
+      $query .= " AND importe < (SELECT MIN(importe) FROM MOVIMIENTO WHERE " . $query . ") * " . $perc;
+    }
+
     return $query;
   }
 }
